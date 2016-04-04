@@ -1,5 +1,5 @@
 # pt-voicebox
-Human-operated predictive text engine. Designed to imitate the predictive text function on smartphones. Allows you to choose your own source.
+predictive text writing engine for multiple custom sources. designed to imitate the predictive text function on smartphones
 
 
 # processing the source
