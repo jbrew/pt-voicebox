@@ -4,7 +4,7 @@
 '''
 
 
-vbox.py: contains all infrastructure for storing and processing the
+vbox.py: main script for predictive text writing
 
 4/3/16: Some of the documentation, especially in the header, might be out-of-date. Please let me know if you find something glaring!
 
