@@ -51,7 +51,7 @@ These questions turn out to be all we need.
 
 Say we're trying to predict the next word of a sentence that's already at least two words long. We can get three pieces of information about the most recent words, m and n.
    A. The list of words that followed the sequence (m, n) most often
-   B. The list of words that followed y most often
+   B. The list of words that followed n most often
    C. The baseline list of most common words in the source
 
 These three lists of words get different weights, and are combined to yield the list of words from which the user chooses (the equivalent of the three suggestions on the smartphone).
