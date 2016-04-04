@@ -6,6 +6,7 @@
 
 vbox.py: contains all infrastructure for storing and processing the
 
+4/3/16: Some of the documentation, especially in the header, might be out-of-date. Please let me know if you find something glaring!
 
 CLASSES
 
@@ -30,6 +31,25 @@ you initialize a word by passing in a string
     methods:
 
     There's a print method and there are methods to set each of the attributes
+    
+    NOTE ON SIGNIFICANCE SCORE:
+    I introduced this to avoid a problem with large dictionaries: the top suggestions tend to be extremely common words, even given
+    specific contexts. If the previous two words are 'jack the' then one continuation you'd like to have is 'ripper.'
+    but if you go strictly by rate of occurrence, then phrases like 'jack, the thing' [is] and [i gave] 'jack the keys'
+    are going to overwhelm 'jack the ripper'
+    
+    To solve this, significance score tries to index how much the context in question boosts a word's frequency
+    over baseline. This may be what you would call a Bayesian approach:
+    
+    sig = P(w|context)/P(w)
+    
+    So if 'ripper' occurs 1 percent of the time after 'jack the' but only .0000001 percent of the time overall,
+    it gets a huge sigscore. meanwhile, 'thing' might occur 2 percent of the time after 'jack the' but .05 percent
+    of the time overall, giving it a more modest sigscore
+    
+    To avoid giving huge sigscores to sequences that occur just once or twice, I've mulitplied the sigscore by
+    the log of the frequency as a way of discounting those little blips we should probably make the base of that
+    log function into a parameter so we can adjust how much the program privileges sequences with high frequencies.
 
 Voice: represents data from a given corpus. initialize it by passing in a dictionary
 
@@ -67,25 +87,10 @@ Voicebox: a collection of Voice objects and their associated weights
 Context: constructed using a dictionary and a list of words (the context in which we're typing),
 this represents all the influences on the what list of words the program will suggest
 
+TODO: Document the functions in this object.
 
-NOTE ON SIGNIFICANCE SCORE:
-I introduced this to avoid a problem with large dictionaries: the top suggestions tend to be extremely common words, even given
-specific contexts. If the previous two words are 'jack the' then one continuation you'd like to have is 'ripper.'
-but if you go strictly by rate of occurrence, then phrases like 'jack, the thing' [is] and [i gave] 'jack the keys'
-are going to overwhelm 'jack the ripper'
 
-To solve this, significance score tries to index how much the context in question boosts a word's frequency
-over baseline. This may be what you would call a Bayesian approach:
 
-sig = P(w|context)/P(w)
-
-So if 'ripper' occurs 1 percent of the time after 'jack the' but only .0000001 percent of the time overall,
-it gets a huge sigscore. meanwhile, 'thing' might occur 2 percent of the time after 'jack the' but .05 percent
-of the time overall, giving it a more modest sigscore
-
-To avoid giving huge sigscores to sequences that occur just once or twice, I've mulitplied the sigscore by
-the log of the frequency as a way of discounting those little blips we should probably make the base of that
-log function into a parameter so we can adjust how much the program privileges sequences with high frequencies.
 
 
 '''
