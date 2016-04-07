@@ -94,6 +94,7 @@ TODO: Document the functions in this object.
 
 
 '''
+from __future__ import print_function
 
 
 __author__ = 'jamiebrew'
@@ -112,7 +113,10 @@ import string
 import operator
 import os
 import textwrap
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import re
 
 import math
@@ -146,11 +150,11 @@ class Word(object):
         self.sub2 = new_sub2
 
     def printWord(self):
-        print '\n',self.string
-        print 'freq:',self.freq
-        print 'norm:',self.norm
-        print 'sig:',self.sig
-        print
+        print('\n',self.string)
+        print('freq:',self.freq)
+        print('norm:',self.norm)
+        print('sig:',self.sig)
+        print()
 
 # contains information about a source stored as a dictionary of all distinct words
 class Voice(object):
@@ -168,7 +172,7 @@ class Voice(object):
 
     # restricts D to the list of words that occur n times in D
     def atLeast(self,D,name,n):
-        print 'restricting %s to words that occur at least %s time(s)' % (name,self.criterion)
+        print('restricting %s to words that occur at least %s time(s)' % (name,self.criterion))
         commonWords = []
         for word in self.D:
             if self.D[word].freq >= n:
@@ -214,13 +218,13 @@ class Voice(object):
     def printD(self,D,indent):
         for x in reversed(sorted(D.items(), key=operator.itemgetter(1))):
             word = x[0]
-            print indent + word + ": " + str(D[word].norm)
-            print indent + word + '.sub1:'
+            print(indent + word + ": " + str(D[word].norm))
+            print(indent + word + '.sub1:')
             self.printD(D[word].sub1,indent+"   ")
-            print indent + word + '.sub2:'
+            print(indent + word + '.sub2:')
             self.printD(D[word].sub2,indent+"   ")
             if indent == "":
-                print '\n'
+                print('\n')
 
     # returns a dictionary of words with the weights consolidated from all ngrams derived from recent_words, plus baseline
     def weighContexts(self,D,recent_words,ranktype=''):
@@ -412,7 +416,7 @@ class Voicebox(object):
         if filename == '':
             sentences = str.split('.')
         else:
-            print "Making dictionary from",filename+"..."
+            print("Making dictionary from",filename+"...")
             path = 'texts/' + filename
             f = open(path,"r")
             sentences = f.read().split('.')
@@ -420,7 +424,10 @@ class Voicebox(object):
         # add every sentence in the source to the dictionary
         for s in range (0,len(sentences)):
             sentences[s] = sentences[s].strip('\n')
-            sentences[s] = sentences[s].translate(string.maketrans("",""), string.punctuation)
+            try:
+                sentences[s] = sentences[s].translate(string.maketrans("",""), string.punctuation)
+            except AttributeError:
+                sentences[s] = sentences[s].translate({i: "" for i in string.punctuation})
             sentences[s] = sentences[s].lower()
             sentences[s] = sentences[s].split()
 
@@ -512,11 +519,11 @@ class Voicebox(object):
         self.voiceWeights[chosenVoiceName] = 1
 
     def getVoices(self):
-        print "\ncurrent voicebox:"
+        print("\ncurrent voicebox:")
         toReturn = {}
         tab = 15
         for voicename in sorted(self.voices):
-            print voicename, ' '*(tab-len(voicename))+"(wt. "+str(self.voiceWeights[voicename])+")"
+            print(voicename, ' '*(tab-len(voicename))+"(wt. "+str(self.voiceWeights[voicename])+")")
 
     # this takes a list of the most recent n words and returns a ranked list of options for the next word
     def getOptions(self,recent_words):
@@ -550,7 +557,7 @@ class Voicebox(object):
 
     # returns a list of options of length num_opts
     def printOptions(self):
-        print "\ntop words in voicebox:"
+        print("\ntop words in voicebox:")
         for wordValSrc in self.options:
             tabs = 1
             tabsize = 25
@@ -571,7 +578,7 @@ class Voicebox(object):
                     toPrint += (offset +"("+ v + ": " + str(val) + ")")
                     offset = " "* (tabs*tabsize+5 - len(toPrint))
                     tabs +=1
-            print toPrint
+            print(toPrint)
 
 class Writer(object):
 
@@ -580,7 +587,7 @@ class Writer(object):
 
     def write(self,vb=voicebox):
         if not vb.voices:
-            print "Cannot write with an empty Voicebox!"
+            print("Cannot write with an empty Voicebox!")
             return
 
         self.chooseVoiceMenu(vb)
@@ -609,7 +616,10 @@ class Writer(object):
 
             self.printOptions(options)
 
-            response = raw_input('Choose one\n')
+            try:
+                response = raw_input('Choose one\n')
+            except NameError:
+                response = input('Choose one\n')
             if response.isdigit():
                 response = int(response)
                 if response >= 1 and response <= vb.num_opts:
@@ -620,15 +630,15 @@ class Writer(object):
                     self.printLog(scriptlog+linelog,cur)
                 elif response == 0:
                     scriptlog = scriptlog + linelog
-                    print 'Final output: '
-                    print ' '.join(scriptlog)
+                    print('Final output: ')
+                    print(' '.join(scriptlog))
                     return scriptlog
                 else:
-                    print "Number out of range!"
+                    print("Number out of range!")
                     self.printLog(scriptlog+linelog,cur)
             elif response == 'x':
                 if len(before) == 0:
-                    print "Cannot delete the start of the sentence!"
+                    print("Cannot delete the start of the sentence!")
                 else:
                     cur -= 1
                     del before[-1] # remove last element of current line
@@ -639,7 +649,7 @@ class Writer(object):
                 self.printLog(scriptlog+linelog,cur)
             elif response == 'c':
                 if cur == len(linelog):
-                    print "Already at end of sentence!"
+                    print("Already at end of sentence!")
                 else:
                     cur += 1
                 self.printLog(scriptlog+linelog,cur)
@@ -661,7 +671,7 @@ class Writer(object):
                 cur += 1
                 self.printLog(scriptlog+linelog,cur)
             else:
-                print "Invalid input. Choose a number between 1 and " + str(vb.num_opts) + " or enter a word manually."
+                print("Invalid input. Choose a number between 1 and " + str(vb.num_opts) + " or enter a word manually.")
                 self.printLog(scriptlog+linelog,cur)
 
     def voiceHeader(self,vb):
@@ -675,7 +685,7 @@ class Writer(object):
     def printOptions(self,options):
         count = 1
         for o in options:
-            print str(count)+':',o[0]#,(10-len(o[0]))*' ',o[1]
+            print(str(count)+':',o[0])  # ,(10-len(o[0]))*' ',o[1]
             count += 1
 
     def writing_menu(self,vb):
@@ -689,7 +699,10 @@ class Writer(object):
                       "\n 7. Load Voicebox" \
                       "\n 8. Exit menu.\n"
 
-        response = raw_input(top_menu_prompt)
+        try:
+            response = raw_input(top_menu_prompt)
+        except NameError:
+            response = input(top_menu_prompt)
         if response.isdigit():
             response = int(response)
 
@@ -702,28 +715,37 @@ class Writer(object):
             elif response ==3:
                 vb.getVoices()
                 for v in sorted(vb.voices):
-                    response = raw_input('Set ranktype for '+v+'\n')
+                    try:
+                        response = raw_input('Set ranktype for '+v+'\n')
+                    except NameError:
+                        response = input('Set ranktype for '+v+'\n')
                     if response in ['norm','freq','sig']:
                         vb.voices[v].ranktype = response
-                        print v + ' ranktype set to ' + str(response)
+                        print(v + ' ranktype set to ' + str(response))
                     else:
-                        print "Please choose either 'norm' 'freq' or 'sig'"
+                        print("Please choose either 'norm' 'freq' or 'sig'")
                 vb.getVoices()
             elif response ==4:
-                print "not implemented"
+                print("not implemented")
                 return
             elif response ==5:
                 self.addVoiceMenu(vb)
             elif response == 6:
-                path = 'saved/' + raw_input('Save as: ') + '.pkl'
+                try:
+                    path = 'saved/' + raw_input('Save as: ')
+                except NameError:
+                    path = 'saved/' + input('Save as: ') + '.pkl'
                 with open(path, 'wb') as output:
                     pickle.dump(vb, output, pickle.HIGHEST_PROTOCOL)
             elif response == 7:
-                path = 'saved/' + raw_input('Load file: ') + '.pkl'
-                with open(path, 'rb') as input:
-                    p = pickle.load(input)
+                try:
+                    path = 'saved/' + raw_input('Load file: ')
+                except NameError:
+                    path = 'saved/' + input('Load file: ') + '.pkl'
+                with open(path, 'rb') as i:
+                    p = pickle.load(i)
             elif response == 8:
-                print "Returning to write"
+                print("Returning to write")
                 return
 
     # prints the log in a readable way
@@ -731,50 +753,61 @@ class Writer(object):
         before = log[:pos]
         after = log[pos:]
         toPrint = before + [self.cursor] + after
-        print textwrap.fill(" ".join(toPrint),80)
+        print(textwrap.fill(" ".join(toPrint),80))
 
     # offers several voice choices
     def chooseVoiceMenu(self,vb):
-        print self.voiceHeader(vb)
-        response = raw_input('Choose a voice by number from above. \nOr:\n'
+        print(self.voiceHeader(vb))
+        try:
+            response = raw_input('Choose a voice by number from above. \nOr:\n'
+                                 '0 to use an equal mixture.\n'
+                                 'C to assign custom weights.\n')
+        except NameError:
+            response = input('Choose a voice by number from above. \nOr:\n'
                              '0 to use an equal mixture.\n'
                              'C to assign custom weights.\n')
         if response.isdigit():
             response = int(response)
             voicelist = sorted(vb.voices)
-            print len(voicelist)
+            print(len(voicelist))
             if response == 0:
-                print "Voices weighted equally!"
+                print("Voices weighted equally!")
             elif response <= len(voicelist):
                 voicename = voicelist[response-1]
                 vb.useOneVoice(voicename)
-                print voicename + ' selected!'
+                print(voicename + ' selected!')
         elif response == 'C':
             self.setWeightMenu(vb)
         else:
-            print 'Invalid response! Type a number in range.'
+            print('Invalid response! Type a number in range.')
 
     def setWeightMenu(self,vb):
         vb.getVoices()
         for v in sorted(vb.voices):
-            response = raw_input('Set weight for '+v+'\n')
+            try:
+                response = raw_input('Set weight for '+v+'\n')
+            except NameError:
+                response = input('Set weight for '+v+'\n')
             if response.isdigit():
                 response = int(response)
                 vb.voiceWeights[v] = response
-                print v + ' weight set to ' + str(response)
+                print(v + ' weight set to ' + str(response))
             else:
-                print "Please type a number!"
+                print("Please type a number!")
         vb.getVoices()
 
     def addVoiceMenu(self,vb):
-        print self.voiceHeader(vb)
+        print(self.voiceHeader(vb))
         import glob
         textfiles = glob.glob('texts/*')
         count = 1
         for filename in textfiles:
-            print str(count) + ": " + filename[6:]
+            print(str(count) + ": " + filename[6:])
             count+=1
-        response = raw_input('Choose a file by number from above.')
+        try:
+            response = raw_input('Choose a file by number from above.')
+        except NameError:
+            response = input('Choose a file by number from above.')
         if response.isdigit():
             response = int(response)
             vb.addVoiceFromFile(textfiles[response-1][6:])
