@@ -19,17 +19,17 @@ add_another = ''
 choices = []
 
 while add_another != 'n':
-  print 'Enter the number of the voice you want to load'
   for i in range(len(source_texts)):
     print "%s %s" % (i + 1, source_texts[i])
 
-  choice = raw_input()
+  choice = raw_input('Enter the number of the voice you want to load:\n')
+
   source = source_texts[int(choice) - 1]
   choices.append(source)
   source_texts.remove(source)
   print "added %s!" % source
 
-  add_another = raw_input('Load another voice? y/n')
+  add_another = raw_input('Load another voice? y/n\n')
 
 for source_text in choices:
   vb.addVoiceFromFile(source_text)
