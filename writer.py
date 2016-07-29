@@ -5,6 +5,7 @@ try:
 except ImportError:
     import pickle
 import re
+import random
 
 from vbox import Voicebox
 
@@ -13,6 +14,15 @@ class Writer(object):
     voicebox = Voicebox()
     cursor = "|"
     rand=0
+
+
+    def weighted_choice(self,weights):
+        total = sum(weights)
+        treshold = random.uniform(0, total)
+        for k, weight in enumerate(weights):
+            total -= weight
+            if total < treshold:
+                return k
 
     def write(self,vb=voicebox):
         if not vb.voices:
@@ -107,7 +117,7 @@ class Writer(object):
                     self.printLog(scriptlog+linelog,cur)
 
         else:
-            import random
+
             try:
                 response = raw_input('Choose number of words in text\n')
             except NameError:
@@ -137,14 +147,14 @@ class Writer(object):
                 if response=='1':
                     choice=random.randint(0,vb.num_opts-1)
                 elif response=='2':
-                    print('weight')
+                    weights=zip(*options)[1]
+                    choice=self.weighted_choice(weights)
+                    # print(choice)
                 elif response=='3':
                     choice=0
 
-                # self.printOptions(options)
-                # print(choice)
+
                 linelog += [options[choice][0]]
-                # print(linelog)
                 count=count+1
 
 
