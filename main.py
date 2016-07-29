@@ -34,4 +34,7 @@ while add_another != 'n':
 for source_text in choices:
   vb.addVoiceFromFile(source_text)
 
+rand_word= raw_input('Use random words? y/n\n')
+
+w.set_rand(rand_word)
 w.write(vb)
