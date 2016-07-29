@@ -5,6 +5,7 @@ try:
 except ImportError:
     import pickle
 import re
+import random
 
 from vbox import Voicebox
 
@@ -12,6 +13,16 @@ class Writer(object):
 
     voicebox = Voicebox()
     cursor = "|"
+    rand=0
+
+
+    def weighted_choice(self,weights):
+        total = sum(weights)
+        treshold = random.uniform(0, total)
+        for k, weight in enumerate(weights):
+            total -= weight
+            if total < treshold:
+                return k
 
     def write(self,vb=voicebox):
         if not vb.voices:
@@ -25,82 +36,129 @@ class Writer(object):
         linelog = []
         hashtable = {}
 
-        while 1:
-            before = linelog[:cur]
-            after = linelog[cur:]
+        if self.rand == 0:
+            while 1:
+                before = linelog[:cur]
+                after = linelog[cur:]
 
-            if vb.vision >= len(before):
-                recent_words = before
-            else:
-                firstword = len(before) - vb.vision
-                recent_words = before[firstword:]
+                if vb.vision >= len(before):
+                    recent_words = before
+                else:
+                    firstword = len(before) - vb.vision
+                    recent_words = before[firstword:]
 
-            # hash check on this set of recent words
-            if "".join(recent_words) in hashtable:
-                options = hashtable["".join(recent_words)]
-            else:
-                options = vb.getOptions(recent_words)[0:vb.num_opts]
-                hashtable["".join(recent_words)] = options
+                # hash check on this set of recent words
+                if "".join(recent_words) in hashtable:
+                    options = hashtable["".join(recent_words)]
+                else:
+                    options = vb.getOptions(recent_words)[0:vb.num_opts]
+                    hashtable["".join(recent_words)] = options
 
-            self.printOptions(options)
+
+                self.printOptions(options)
+                try:
+                    response = raw_input('Choose one\n')
+                except NameError:
+                    response = input('Choose one\n')
+                if response.isdigit():
+                    response = int(response)
+                    if response >= 1 and response <= vb.num_opts:
+                        before += [options[response-1][0]]
+                        print(before)
+                        linelog = before + after
+                        print(linelog)
+                        cur += 1
+                        print(self.voiceHeader(vb))
+                        self.printLog(scriptlog+linelog,cur)
+                    elif response == 0:
+                        scriptlog = scriptlog + linelog
+                        print('Final output: ')
+                        print(' '.join(scriptlog))
+                        return scriptlog
+                    else:
+                        print("Number out of range!")
+                        self.printLog(scriptlog+linelog,cur)
+                elif response == 'x':
+                    if len(before) == 0:
+                        print("Cannot delete the start of the sentence!")
+                    else:
+                        cur -= 1
+                        del before[-1] # remove last element of current line
+                        linelog = before + after
+                    self.printLog(scriptlog+linelog,cur)
+                elif response == 'z':
+                    cur -= 1
+                    self.printLog(scriptlog+linelog,cur)
+                elif response == 'c':
+                    if cur == len(linelog):
+                        print("Already at end of sentence!")
+                    else:
+                        cur += 1
+                    self.printLog(scriptlog+linelog,cur)
+                elif response == '.' or response=='?':        # starts a new sentence
+                    before[-1] += response
+                    linelog = before + after
+                    scriptlog = scriptlog + linelog
+                    linelog = []
+                    self.printLog(scriptlog+linelog,cur)
+                elif response in ['m','menu']:
+                    self.writing_menu(vb)
+                    self.printLog(scriptlog+linelog,cur)
+                #elif re.compile('v\d',response):
+                #    number = response[1]
+                #    print "here"
+                elif isinstance(response, str):
+                    before = before + [response]
+                    linelog = before + after
+                    cur += 1
+                    self.printLog(scriptlog+linelog,cur)
+                else:
+                    print("Invalid input. Choose a number between 1 and " + str(vb.num_opts) + " or enter a word manually.")
+                    self.printLog(scriptlog+linelog,cur)
+
+        else:
 
             try:
-                response = raw_input('Choose one\n')
+                response = raw_input('Choose number of words in text\n')
             except NameError:
-                response = input('Choose one\n')
-            if response.isdigit():
-                response = int(response)
-                if response >= 1 and response <= vb.num_opts:
-                    before += [options[response-1][0]]
-                    linelog = before + after
-                    cur += 1
-                    print(self.voiceHeader(vb))
-                    self.printLog(scriptlog+linelog,cur)
-                elif response == 0:
-                    scriptlog = scriptlog + linelog
-                    print('Final output: ')
-                    print(' '.join(scriptlog))
-                    return scriptlog
+                response = input('Choose number of words in text\n')
+            words=int(response)
+            menu='Pick an option for random choice:\n1:Completely random\n2:Weighted random\n3:Best word only\n'
+            try:
+                response = raw_input(menu)
+            except NameError:
+                response = input(menu)
+            count=0
+            while count<words:
+                before = linelog[:count]
+                after = linelog[count:]
+                if vb.vision >= len(before):
+                    recent_words = before
                 else:
-                    print("Number out of range!")
-                    self.printLog(scriptlog+linelog,cur)
-            elif response == 'x':
-                if len(before) == 0:
-                    print("Cannot delete the start of the sentence!")
+                    firstword = len(before) - vb.vision
+                    recent_words = before[firstword:]
+
+                # hash check on this set of recent words
+                if "".join(recent_words) in hashtable:
+                    options = hashtable["".join(recent_words)]
                 else:
-                    cur -= 1
-                    del before[-1] # remove last element of current line
-                    linelog = before + after
-                self.printLog(scriptlog+linelog,cur)
-            elif response == 'z':
-                cur -= 1
-                self.printLog(scriptlog+linelog,cur)
-            elif response == 'c':
-                if cur == len(linelog):
-                    print("Already at end of sentence!")
-                else:
-                    cur += 1
-                self.printLog(scriptlog+linelog,cur)
-            elif response == '.' or response=='?':        # starts a new sentence
-                before[-1] += response
-                linelog = before + after
-                scriptlog = scriptlog + linelog
-                linelog = []
-                self.printLog(scriptlog+linelog,cur)
-            elif response in ['m','menu']:
-                self.writing_menu(vb)
-                self.printLog(scriptlog+linelog,cur)
-            #elif re.compile('v\d',response):
-            #    number = response[1]
-            #    print "here"
-            elif isinstance(response, str):
-                before = before + [response]
-                linelog = before + after
-                cur += 1
-                self.printLog(scriptlog+linelog,cur)
-            else:
-                print("Invalid input. Choose a number between 1 and " + str(vb.num_opts) + " or enter a word manually.")
-                self.printLog(scriptlog+linelog,cur)
+                    options = vb.getOptions(recent_words)[0:vb.num_opts]
+                    hashtable["".join(recent_words)] = options
+                if response=='1':
+                    choice=random.randint(0,vb.num_opts-1)
+                elif response=='2':
+                    weights=zip(*options)[1]
+                    choice=self.weighted_choice(weights)
+                    # print(choice)
+                elif response=='3':
+                    choice=0
+
+
+                linelog += [options[choice][0]]
+                count=count+1
+
+
+            self.printLog(linelog,words)
 
     def voiceHeader(self,vb):
         headerString = "\nVOICES\n"
@@ -239,3 +297,10 @@ class Writer(object):
         if response.isdigit():
             response = int(response)
             vb.addVoiceFromFile(textfiles[response-1][6:])
+
+    def set_rand(self,rand_word):
+        if rand_word=='y':
+            self.rand=1
+            print("Using random words automatically!")
+        else:
+            print("Using chosen words!")
