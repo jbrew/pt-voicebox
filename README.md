@@ -1,2 +1,2 @@
 # pt-voicebox
-predictive text writing engine for multiple custom sources. intended to imitate the predictive text function on smartphones
+this is a writing engine intended to imitate the predictive text function on smartphones
