@@ -272,7 +272,7 @@ class Voicebox(object):
 
     # asks you to choose corpora from files in 'texts', then adds a voice with those corpora
     def add_voice(self):
-        new_voice = voice.voice({})     # creates new voice with no name and empty tree of corpora
+        new_voice = voice.Voice({})     # creates new voice with no name and empty tree of corpora
         texts = os.listdir('texts')
         add_another_corpus = ''
         while add_another_corpus != 'n':
@@ -285,7 +285,7 @@ class Voicebox(object):
             text = f.read()
             corpus_weight_prompt = 'Enter the weight for %s:\n' % corpus_name
             corpus_weight = float(raw_input(corpus_weight_prompt))
-            new_voice.add_corpus(corpus.corpus(text, corpus_name), corpus_weight)
+            new_voice.add_corpus(corpus.Corpus(text, corpus_name), corpus_weight)
             texts.remove(corpus_name)
             add_another_corpus = raw_input('Add another corpus to this voice? y/n\n')
         voicename = raw_input('Name this voice:\n')
