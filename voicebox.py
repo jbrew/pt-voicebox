@@ -12,6 +12,7 @@ import re
 import voice
 import pickler
 import urllib2
+#from bs4 import BeautifulSoup
 import unicodedata
 
 """
@@ -45,7 +46,7 @@ class Voicebox(object):
         self.dynamic = False
         self.mode_list = ['frequency', 'sigscore', 'count']
         self.mode = 'frequency'
-        self.spanish_to_english = False
+        #self.spanish_to_english = False
         self.num_options = 20
         if raw_input('Load previous session y/n\n') != 'n':
             loaded_voicebox = self.load_session()               # unpickles a previously-saved object
@@ -91,9 +92,9 @@ class Voicebox(object):
             print textwrap.fill(" ".join(self.log + words_before[1:] + [self.cursor] + words_after),80)
             self.display_suggestions(suggestions)
 
-            if self.spanish_to_english:
-                print words_before[-1]+ ": " + self.to_english(words_before[-1]).encode('utf-8').strip()
-                self.spanish_to_english = False
+            #if self.spanish_to_english:
+            #    print words_before[-1]+ ": " + self.to_english(words_before[-1]).encode('utf-8').strip()
+            #    self.spanish_to_english = False
 
             input = raw_input('What now?\n')
             
@@ -130,8 +131,8 @@ class Voicebox(object):
                     words_before.append(next_word)
                     sentence = words_before + words_after
                     self.cursor_position += 1
-                elif input == 't':
-                    self.spanish_to_english = True
+                #elif input == 't':
+                #    self.spanish_to_english = True
                 elif input == 'info':
                     self.toggle_info()
                 elif input == 'dynamic':
@@ -347,11 +348,31 @@ class Voicebox(object):
     def take_suggestion(self, suggestions, input):
         return suggestions[int(input) - 1]
 
+    """
+    # These functions are for looking up the definitions of unfamiliar words.
+    # They require installing the HTML parsing tool Beautiful Soup, so I've commented them out.
+    # If you have bs4, feel free to try them!
+
+    def to_english(self, word):
+        search_term = urllib2.quote(word)
+        search_url = 'http://www.spanishdict.com/translate/%s' % search_term
+        print search_url
+        page = urllib2.urlopen(search_url).read()
+        print len(page)
+        soup = BeautifulSoup(page.decode('utf-8','ignore'), "html.parser")
+        foo = soup.findAll(class_="dictionary-neodict-translation-translation")
+        print len(foo)
+        to_return = []
+        for x in foo:
+            to_return.append(x.get_text())
+        return ", ".join(to_return)
+
     def to_english2(self, word):
         search_url = 'https://translate.google.com/#es/en/%s' % word
         page = urllib2.urlopen(search_url).read()
         soup = BeautifulSoup(page.decode('utf-8','ignore'), "html.parser")
         foo = soup.findAll(class_="dictionary-neodict-translation-translation")
+        """
 
 def remove_accents(s):
     print type(s)
