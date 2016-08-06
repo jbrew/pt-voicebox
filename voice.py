@@ -5,8 +5,8 @@ import operator
 # keeps a dictionary of sources with associated weights
 class Voice(object):
 
-    def __init__(self, weighted_corpora):
-        self.name = 'no_name'
+    def __init__(self, weighted_corpora, name = 'no_name'):
+        self.name = name
         self.weighted_corpora = weighted_corpora
 
     # aggregates the suggestion lists of all constituent corpora in this voice, prints the top num_words from this list
