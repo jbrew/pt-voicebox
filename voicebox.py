@@ -11,9 +11,9 @@ import random
 import re
 import voice
 import pickler
-import urllib2
+#import urllib2
 #from bs4 import BeautifulSoup
-import unicodedata
+#import unicodedata
 
 """
 input loop for writing with a corpus or set of corpora
@@ -48,7 +48,10 @@ class Voicebox(object):
         self.mode = 'frequency'
         #self.spanish_to_english = False
         self.num_options = 20
-        if raw_input('Load previous session y/n\n') != 'n':
+
+        #load_prev = raw_input('Load previous session y/n\n') # TODO: debug load function
+        load_prev = 'n'
+        if load_prev != 'n':
             loaded_voicebox = self.load_session()               # unpickles a previously-saved object
             self.cursor = loaded_voicebox.cursor
             self.cursor_position = loaded_voicebox.cursor_position
@@ -305,7 +308,11 @@ class Voicebox(object):
         for charname, size in self.biggest_characters(transcript_name, number):
             print charname
             path = 'texts/transcripts/%s/%s' % (transcript_name, charname)
-            self.voices[charname] = voice.voice([[file(path).read(), charname, 1]])
+            source_text = file(path).read()
+            corpus_name = charname
+            weighted_corpora = {}
+            weighted_corpora[charname] = [corpus.Corpus(source_text, corpus_name),1]
+            self.voices[charname] = voice.Voice(weighted_corpora, charname)
 
     # retrieves a list of the top 20 largest character text files in a transcript folder
     def biggest_characters(self, tname, number):
@@ -373,18 +380,6 @@ class Voicebox(object):
         soup = BeautifulSoup(page.decode('utf-8','ignore'), "html.parser")
         foo = soup.findAll(class_="dictionary-neodict-translation-translation")
         """
-
-def remove_accents(s):
-    print type(s)
-    print s
-    unicode_data = s.decode('utf-8')
-    print 'u:',unicode_data
-    to_return = unicodedata.normalize('NFKD', unicode_data).encode('ASCII', 'ignore')
-    print to_return
-    return to_return
-
-def remove_accents2(s):
-    return urllib2.quote(s)
 
 def main():
     vb = Voicebox()
