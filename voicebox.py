@@ -264,7 +264,9 @@ class Voicebox(object):
         return " ".join(sentence)
 
     def load_voices(self):
-        if raw_input('Load from transcript? y/n\n') in ['y','yes']:
+        #load_from_transcript = raw_input('Load from transcript? y/n\n')
+        load_from_transcript = 'n'
+        if load_from_transcript in ['y','yes']:
             self.load_voices_from_transcript()
         else:
             add_another_voice = ''
