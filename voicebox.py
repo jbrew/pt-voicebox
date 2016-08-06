@@ -49,8 +49,7 @@ class Voicebox(object):
         #self.spanish_to_english = False
         self.num_options = 20
 
-        #load_prev = raw_input('Load previous session y/n\n') # TODO: debug load function
-        load_prev = 'n'
+        load_prev = raw_input('Load previous session? y/n\n')
         if load_prev != 'n':
             loaded_voicebox = self.load_session()               # unpickles a previously-saved object
             self.cursor = loaded_voicebox.cursor
