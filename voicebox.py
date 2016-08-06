@@ -12,7 +12,6 @@ import re
 import voice
 import pickler
 import urllib2
-from bs4 import BeautifulSoup
 import unicodedata
 
 """
@@ -347,20 +346,6 @@ class Voicebox(object):
 
     def take_suggestion(self, suggestions, input):
         return suggestions[int(input) - 1]
-
-    def to_english(self, word):
-        search_term = urllib2.quote(word)
-        search_url = 'http://www.spanishdict.com/translate/%s' % search_term
-        print search_url
-        page = urllib2.urlopen(search_url).read()
-        print len(page)
-        soup = BeautifulSoup(page.decode('utf-8','ignore'), "html.parser")
-        foo = soup.findAll(class_="dictionary-neodict-translation-translation")
-        print len(foo)
-        to_return = []
-        for x in foo:
-            to_return.append(x.get_text())
-        return ", ".join(to_return)
 
     def to_english2(self, word):
         search_url = 'https://translate.google.com/#es/en/%s' % word
