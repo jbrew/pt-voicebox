@@ -1,6 +1,6 @@
 __author__ = 'jamiebrew'
 
-import ngram
+from ngram import Ngram
 import string
 import math
 import operator
@@ -10,11 +10,11 @@ from collections import Counter
 """
 a corpus represents information about a text as a tree indexed by string
 	* each entry in the tree is an ngram object
-	* the key for a multi-word ngram is the space-separated words in the ngram	
+	* the key for a multi-word ngram is the space-separated words in the ngram
 """
 class Corpus(object):
 
-    def __init__(self, text, name, max_ngram_size = 2, sort_attribute = "FREQUENCY", foresight = 0, hindsight = 2, wordcount_criterion = 1):
+    def __init__(self, text, name, max_ngram_size = 2, sort_attribute = "frequency", foresight = 0, hindsight = 2, wordcount_criterion = 1):
         self.wordcount = 0
         self.wordcount_criterion = wordcount_criterion
         self.foresight = foresight
@@ -111,7 +111,7 @@ class Corpus(object):
         if str in tree:
             tree[str].count += 1
         else:
-            tree[str] = ngram.Ngram(str)
+            tree[str] = Ngram(str)
             tree[str].after = [{} for i in range(0,self.hindsight)]
             tree[str].before = [{} for i in range(0,self.foresight)]
 
@@ -183,7 +183,7 @@ class Corpus(object):
                     # crude function for privileging larger n-grams and closer contexts
                     weight = (10**n_gram_size)/(10**reach)
                     for tuple in after_previous:
-                        key = tuple[0].string
+                        key = tuple[0]
                         value = tuple[1] * weight
                         if len(key.split(' ')) == 1:
                             if key not in suggestions:
@@ -214,7 +214,7 @@ class Corpus(object):
         baseline_weight = 0.00000001
         for key in self.tree:
             n_gram = self.tree[key]
-            value = baseline_weight * n_gram.get_attribute(self.sort_attribute)
+            value = baseline_weight * getattr(n_gram, self.sort_attribute)
             if len(key.split(' ')) == 1:
                 if key not in suggestions:
                     suggestions[key] = value
