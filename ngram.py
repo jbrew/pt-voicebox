@@ -1,15 +1,13 @@
 __author__ = 'jamiebrew'
 
-import operator
-
 # information about a unique string within a corpus
 class Ngram(object):
 
-    def __init__(self, string):
+    def __init__(self, string, after_distance=0, before_distance=0):
         self.string = string
         self.count = 1                  # how many times this ngram occurs
-        self.after = []                 # list of dictionaries
-        self.before = []                # list of dictionaries
+        self.after = [{} for i in range(after_distance)] # list of dictionaries
+        self.before = [{} for i in range(before_distance)]                # list of dictionaries
         self.frequency = 0              # normalized rate of occurrence
         self.sig_score = 0              # significance score
         self.rhymes = {}
@@ -22,6 +20,9 @@ class Ngram(object):
 
     def __len__(self):
         return len(self.string)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
     # returns top n words occuring distance after this ngram
     def get_after(self, distance=1, n=20, sort_attribute="count"):

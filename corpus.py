@@ -111,9 +111,7 @@ class Corpus(object):
         if str in tree:
             tree[str].count += 1
         else:
-            tree[str] = Ngram(str)
-            tree[str].after = [{} for i in range(0,self.hindsight)]
-            tree[str].before = [{} for i in range(0,self.foresight)]
+            tree[str] = Ngram(str, self.hindsight, self.foresight)
 
     def lookup_ngram(self, ngram, tree):
         if ngram in tree:
