@@ -203,7 +203,7 @@ class Corpus(object):
                     # crude function for privileging larger n-grams and closer contexts
                     weight = (10**n_gram_size)/(10**reach)
                     for tuple in before_next:
-                        key = tuple[0].string
+                        key = tuple[0]
                         value = tuple[1] * weight
                         if len(key.split(' ')) == 1:
                             if key not in suggestions:
