@@ -14,7 +14,7 @@ a corpus represents information about a text as a tree indexed by string
 """
 class Corpus(object):
 
-    def __init__(self, text, name, max_ngram_size = 2, sort_attribute = "frequency", foresight = 0, hindsight = 2, wordcount_criterion = 1):
+    def __init__(self, text, name='', max_ngram_size=2, sort_attribute='frequency', foresight=0, hindsight=2, wordcount_criterion=1):
         self.wordcount = 0
         self.wordcount_criterion = wordcount_criterion
         self.foresight = foresight
@@ -24,16 +24,8 @@ class Corpus(object):
         self.name = name
         self.sort_attribute = sort_attribute
 
-    # returns the n words occurring most frequently in a string
-    def top_words(self, n, text):
-        text = text.translate(string.maketrans("",""), string.punctuation)
-        words = re.findall('[a-z]+', text.lower())
-        wordcounts = Counter(words)
-        sorted_wordcounts = list(reversed(sorted(wordcounts.items(), key=operator.itemgetter(1))))
-        return sorted_wordcounts[0:n]
-
     # the list of words in a given list of sentences that meet a given wordcount criterion
-    def short_list(self, sentence_list, wordcount_criterion):
+    def short_list(self, sentence_list):
         # all unique words mapped to wordcount
         unique_words = {}
 
@@ -46,16 +38,16 @@ class Corpus(object):
                     unique_words[word] += 1
         shortlist = set()
         for word in unique_words:
-            if unique_words[word] >= wordcount_criterion:
+            if unique_words[word] >= self.wordcount_criterion:
                 shortlist.add(word)
         print "Unique words in corpus:", len(unique_words)
-        print "Words occurring at least %s times: %s" % (wordcount_criterion, len(shortlist))
+        print "Words occurring at least %s times: %s" % (self.wordcount_criterion, len(shortlist))
         return shortlist
 
     # constructs the tree of ngrams' likelihood of following other ngrams
     def make_tree(self, str):
         sentences = self.make_sentences(str)
-        shortlist = self.short_list(sentences, self.wordcount_criterion)
+        shortlist = self.short_list(sentences)
 
         T = {}
         # go through each sentence, add each word to the dictionary, incrementing length each time
@@ -84,10 +76,10 @@ class Corpus(object):
                             # add dictionaries of words preceding this ngram
                             for word_position in range(start-1, start-self.foresight-1, -1):
                                 if word_position >= 0:
-                                   reach = start - word_position
-                                   target = T[new_ngram].before[reach-1]
-                                   word = sentence[word_position]
-                                   if word in shortlist:
+                                    reach = start - word_position
+                                    target = T[new_ngram].before[reach-1]
+                                    word = sentence[word_position]
+                                    if word in shortlist:
                                         self.add_ngram(word,target)
 
         T = self.calculate_frequencies(T)
@@ -112,10 +104,6 @@ class Corpus(object):
             tree[str].count += 1
         else:
             tree[str] = Ngram(str, self.hindsight, self.foresight)
-
-    def lookup_ngram(self, ngram, tree):
-        if ngram in tree:
-            return tree[ngram]
 
     # given a tree that has kept count for each word, finds and stores normalized frequencies
     def calculate_frequencies(self,T):
@@ -145,19 +133,6 @@ class Corpus(object):
                     after_n_gram = dict[after_key]
                     after_n_gram.sig_score = (after_n_gram.frequency/T[after_key].frequency) * math.log(n_gram.frequency+1,10)
         return T
-
-    # ranks all ngrams in a tree by the specified attribute. returns a list
-    def sort_ngrams(self, tree, sort_att):
-        to_sort = {}
-        for ngram_key in tree:
-            ngram = tree[ngram_key]
-            if sort_att == 'frequency':
-                to_sort[ngram_key] = ngram.frequency
-            elif sort_att == 'sigscore':
-                to_sort[ngram_key] = ngram.sig_score
-            elif sort_att == 'count':
-                to_sort[ngram_key] = ngram.count
-        return sorted(to_sort, key=operator.itemgetter(0))
 
     # given a sentence and an insertion position in that sentence, yields a list of words likely to occur at that position
     # based on adjacent words and baseline frequency
