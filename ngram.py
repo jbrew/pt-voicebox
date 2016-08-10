@@ -5,9 +5,9 @@ class Ngram(object):
 
     def __init__(self, string, after_distance=0, before_distance=0):
         self.string = string
-        self.count = 1                  # how many times this ngram occurs
-        self.after = [{} for i in range(after_distance)] # list of dictionaries
-        self.before = [{} for i in range(before_distance)]                # list of dictionaries
+        self.count = 1
+        self.after = [{} for _ in range(after_distance)]
+        self.before = [{} for _ in range(before_distance)]
         self.frequency = 0              # normalized rate of occurrence
         self.sig_score = 0              # significance score
         self.rhymes = {}

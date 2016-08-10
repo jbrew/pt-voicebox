@@ -12,7 +12,7 @@ class CorpusTests(unittest.TestCase):
     return suggested_tuples[index][1]
 
   def test_suggest__text_small(self):
-    corpus = Corpus(text=test_data.text_small, name='')
+    corpus = Corpus(text=test_data.text_small)
 
     suggested_tuples = corpus.suggest([], 0, 2)
     self.assertEqual(
@@ -44,8 +44,8 @@ class CorpusTests(unittest.TestCase):
       self._get_suggested_sort_attribute(suggested_tuples,  'earned')
     )
 
-  def test_suggest__text_small_wordcount_criterion(self):
-    corpus = Corpus(text=test_data.text_small, name='', wordcount_criterion=2)
+  def test_suggest__text_small_min_word_count(self):
+    corpus = Corpus(text=test_data.text_small, min_word_count=2)
 
     suggested_tuples = corpus.suggest([], 0, 2)
     self.assertEqual(
