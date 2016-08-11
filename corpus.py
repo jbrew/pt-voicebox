@@ -5,7 +5,6 @@ import string
 import math
 import operator
 import re
-from collections import Counter
 
 """
 a corpus represents information about a text as a tree indexed by string
@@ -14,50 +13,39 @@ a corpus represents information about a text as a tree indexed by string
 """
 class Corpus(object):
 
-    def __init__(self, text, name, max_ngram_size = 2, sort_attribute = "frequency", foresight = 0, hindsight = 2, wordcount_criterion = 1):
-        self.wordcount = 0
-        self.wordcount_criterion = wordcount_criterion
+    def __init__(self, text, name='', max_ngram_size=2, sort_attribute='frequency', foresight=0, hindsight=2, min_word_count=1):
+        self.text = text
+        self.name = name
+        self.max_ngram_size = max_ngram_size
+        self.sort_attribute = sort_attribute
         self.foresight = foresight
         self.hindsight = hindsight
-        self.max_ngram_size = max_ngram_size
-        self.tree = self.make_tree(text)
-        self.name = name
-        self.sort_attribute = sort_attribute
+        self.min_word_count = min_word_count
 
-    # returns the n words occurring most frequently in a string
-    def top_words(self, n, text):
-        text = text.translate(string.maketrans("",""), string.punctuation)
-        words = re.findall('[a-z]+', text.lower())
-        wordcounts = Counter(words)
-        sorted_wordcounts = list(reversed(sorted(wordcounts.items(), key=operator.itemgetter(1))))
-        return sorted_wordcounts[0:n]
+        self.wordcount = 0
+        self.tree = {}
+        self.make_tree()
 
-    # the list of words in a given list of sentences that meet a given wordcount criterion
-    def short_list(self, sentence_list, wordcount_criterion):
-        # all unique words mapped to wordcount
-        unique_words = {}
-
-        # make wordcount dictionary
-        for sentence in sentence_list:
+    # The list of words in a given list of sentences that have a count greater than
+    # or equal to the minimum word count
+    def get_white_list(self, sentences):
+        word_count = {}
+        for sentence in sentences:
             for word in sentence:
-                if word not in unique_words:
-                    unique_words[word] = 1
-                else:
-                    unique_words[word] += 1
-        shortlist = set()
-        for word in unique_words:
-            if unique_words[word] >= wordcount_criterion:
-                shortlist.add(word)
-        print "Unique words in corpus:", len(unique_words)
-        print "Words occurring at least %s times: %s" % (wordcount_criterion, len(shortlist))
-        return shortlist
+                word_count[word] = word_count.get(word, 0) + 1
+
+        white_list = set()
+        for word, count in word_count.iteritems():
+            if count >= self.min_word_count:
+                white_list.add(word)
+
+        return white_list
 
     # constructs the tree of ngrams' likelihood of following other ngrams
-    def make_tree(self, str):
-        sentences = self.make_sentences(str)
-        shortlist = self.short_list(sentences, self.wordcount_criterion)
+    def make_tree(self):
+        sentences = self.get_sentences()
+        white_list = self.get_white_list(sentences)
 
-        T = {}
         # go through each sentence, add each word to the dictionary, incrementing length each time
         for sentence in sentences:
             sentence = ['START_SENTENCE'] + sentence
@@ -66,100 +54,76 @@ class Corpus(object):
                     end = start + ngram_size
                     if end <= len(sentence):
                         words_to_add = sentence[start:end]
-                        if set(words_to_add) < shortlist and len(words_to_add) > 0: # checks that all of the words in the ngram pass criterion
+                        if set(words_to_add) < white_list and len(words_to_add) > 0: # checks that all of the words in the ngram pass criterion
                             new_ngram = " ".join(words_to_add)
-                            self.add_ngram(new_ngram, T)
-                            if ngram_size==1:
+                            self.add_ngram(new_ngram)
+                            if ngram_size == 1:
                                 self.wordcount += 1
 
                             # add dictionaries of words following this ngram
                             for word_position in range(end, end+self.hindsight):
                                 if word_position < len(sentence):
                                     reach = word_position - end
-                                    target = T[new_ngram].after[reach]
+                                    target = self.tree[new_ngram].after[reach]
                                     word = sentence[word_position]
-                                    if word in shortlist:
-                                        self.add_ngram(word,target)
+                                    if word in white_list:
+                                        self.add_ngram(word, target)
 
                             # add dictionaries of words preceding this ngram
                             for word_position in range(start-1, start-self.foresight-1, -1):
                                 if word_position >= 0:
-                                   reach = start - word_position
-                                   target = T[new_ngram].before[reach-1]
-                                   word = sentence[word_position]
-                                   if word in shortlist:
-                                        self.add_ngram(word,target)
+                                    reach = start - word_position
+                                    target = self.tree[new_ngram].before[reach-1]
+                                    word = sentence[word_position]
+                                    if word in white_list:
+                                        self.add_ngram(word, target)
 
-        T = self.calculate_frequencies(T)
-        T = self.calculate_sig_scores(T)
-        return T
+        self.calculate_frequencies()
+        self.calculate_sig_scores()
 
-    # splits the text into sentences, lowercases them and cleans punctuation
-    def make_sentences(self, str):
-        # split at period followed by newline or space, or question mark, or exclamation point
-        sentences = str.split('.\n' or '. ' or '?' or '!')
+    # Split text into sentences, lowercase and clean punctuation
+    def get_sentences(self):
+        sentences = self.text.split('.\n' or '. ' or '?' or '!')
 
-        for sentence in range (0,len(sentences)):
-            sentences[sentence] = sentences[sentence].strip('\n')
-            sentences[sentence] = sentences[sentence].translate(string.maketrans("",""), string.punctuation.replace("'","")) # removes all punctuation except apostrophe
-            sentences[sentence] = sentences[sentence].lower()
-            sentences[sentence] = sentences[sentence].split()
-        return sentences
+        return map(
+            lambda sentence: (
+                sentence.strip('\n') \
+                        .translate(string.maketrans('', ''), string.punctuation.replace('\'', '')) \
+                        .lower()
+                        .split()
+            ),
+            sentences
+        )
 
-    # adds an ngram to a given tree
-    def add_ngram(self, str, tree):
-        if str in tree:
-            tree[str].count += 1
-        else:
-            tree[str] = Ngram(str)
-            tree[str].after = [{} for i in range(0,self.hindsight)]
-            tree[str].before = [{} for i in range(0,self.foresight)]
+    # Adds an ngram to a given tree
+    def add_ngram(self, ngram, tree=None):
+        tree = self.tree if tree is None else tree
 
-    def lookup_ngram(self, ngram, tree):
         if ngram in tree:
-            return tree[ngram]
+            tree[ngram].count += 1
+        else:
+            tree[ngram] = Ngram(ngram, self.hindsight, self.foresight)
 
-    # given a tree that has kept count for each word, finds and stores normalized frequencies
-    def calculate_frequencies(self,T):
-        for ngram_key in T:
-            ngram = T[ngram_key]
-            ngram.frequency = ngram.count/float(self.wordcount)
-            for dict in ngram.before:
-                for before_key in dict:
-                    before_ngram = dict[before_key]
-                    before_ngram.frequency = before_ngram.count/float(ngram.count)
-            for dict in ngram.after:
-                for after_key in dict:
-                    after_ngram = dict[after_key]
-                    after_ngram.frequency = after_ngram.count/float(ngram.count)
-        return T
+    # Finds and stores normalized frequencies
+    def calculate_frequencies(self):
+        for _, ngram in self.tree.iteritems():
+            ngram.frequency = ngram.count / float(self.wordcount)
+            for ngrams_before in ngram.before:
+                for _, ngram_before in ngrams_before.iteritems():
+                    ngram_before.frequency = ngram_before.count / float(ngram.count)
+            for ngrams_after in ngram.after:
+                for _, ngram_after in ngrams_after.iteritems():
+                    ngram_after.frequency = ngram_after.count / float(ngram.count)
 
-    # given a tree that has frequencies for each word, computes and stores the significance scores
-    def calculate_sig_scores(self,T):
-        for n_gram_key in T:
-            n_gram = T[n_gram_key]
-            for dict in n_gram.before:
-                for before_key in dict:
-                    before_n_gram = dict[before_key]
-                    before_n_gram.sig_score = (before_n_gram.frequency/T[before_key].frequency) * math.log(n_gram.frequency+1,10)
-            for dict in n_gram.after:
-                for after_key in dict:
-                    after_n_gram = dict[after_key]
-                    after_n_gram.sig_score = (after_n_gram.frequency/T[after_key].frequency) * math.log(n_gram.frequency+1,10)
-        return T
-
-    # ranks all ngrams in a tree by the specified attribute. returns a list
-    def sort_ngrams(self, tree, sort_att):
-        to_sort = {}
-        for ngram_key in tree:
-            ngram = tree[ngram_key]
-            if sort_att == 'frequency':
-                to_sort[ngram_key] = ngram.frequency
-            elif sort_att == 'sigscore':
-                to_sort[ngram_key] = ngram.sig_score
-            elif sort_att == 'count':
-                to_sort[ngram_key] = ngram.count
-        return sorted(to_sort, key=operator.itemgetter(0))
+    # Computes and stores the significance scores
+    def calculate_sig_scores(self):
+        for _, ngram in self.tree.iteritems():
+            for ngrams_before in ngram.before:
+                for before_key, ngram_before in ngrams_before.iteritems():
+                    ngram_before.sig_score = (ngram_before.frequency / self.tree[before_key].frequency) * math.log(ngram.frequency + 1, 10)
+            for ngrams_after in ngram.after:
+                for after_key, ngram_after in ngrams_after.iteritems():
+                    ngram_after.sig_score = (ngram_after.frequency / self.tree[after_key].frequency) * math.log(ngram.frequency + 1, 10)
 
     # given a sentence and an insertion position in that sentence, yields a list of words likely to occur at that position
     # based on adjacent words and baseline frequency
@@ -173,15 +137,15 @@ class Corpus(object):
 
         # look at previous words in sentence, and all the words occurring after them
         for reach in range(1, self.hindsight+1):
-            for n_gram_size in range(1, self.max_ngram_size+1):
-                if len(before_cursor)+1 >= reach+n_gram_size:
-                    end_of_n_gram = len(before_cursor)-reach
-                    start_of_n_gram = end_of_n_gram - (n_gram_size-1)
-                    previous_n_gram = " ".join(before_cursor[start_of_n_gram:end_of_n_gram+1])
-                    after_previous = self.get_after(previous_n_gram, reach, num_words)
-                    #print "after %s: %s" % (previous_n_gram, str(after_previous))
+            for ngram_size in range(1, self.max_ngram_size+1):
+                if len(before_cursor)+1 >= reach+ngram_size:
+                    end_of_ngram = len(before_cursor)-reach
+                    start_of_ngram = end_of_ngram - (ngram_size-1)
+                    previous_ngram = " ".join(before_cursor[start_of_ngram:end_of_ngram+1])
+                    after_previous = self.get_after(previous_ngram, reach, num_words)
+                    #print "after %s: %s" % (previous_ngram, str(after_previous))
                     # crude function for privileging larger n-grams and closer contexts
-                    weight = (10**n_gram_size)/(10**reach)
+                    weight = (10**ngram_size)/(10**reach)
                     for tuple in after_previous:
                         key = tuple[0]
                         value = tuple[1] * weight
@@ -192,16 +156,16 @@ class Corpus(object):
                                 suggestions[key] += value
 
         for reach in range(1, self.foresight+1):
-            for n_gram_size in range(1, self.max_ngram_size+1):
-                if len(after_cursor)+1 >= reach+n_gram_size:
-                    start_of_n_gram = reach - 1
-                    end_of_n_gram = start_of_n_gram + (n_gram_size - 1)
-                    next_n_gram = " ".join(after_cursor[start_of_n_gram:end_of_n_gram+1])
-                    before_next = self.get_before(next_n_gram, reach, num_words)
-                    #print "before %s: %s" % (next_n_gram.string, str(before_next))
+            for ngram_size in range(1, self.max_ngram_size+1):
+                if len(after_cursor)+1 >= reach+ngram_size:
+                    start_of_ngram = reach - 1
+                    end_of_ngram = start_of_ngram + (ngram_size - 1)
+                    next_ngram = " ".join(after_cursor[start_of_ngram:end_of_ngram+1])
+                    before_next = self.get_before(next_ngram, reach, num_words)
+                    #print "before %s: %s" % (next_ngram.string, str(before_next))
 
                     # crude function for privileging larger n-grams and closer contexts
-                    weight = (10**n_gram_size)/(10**reach)
+                    weight = (10**ngram_size)/(10**reach)
                     for tuple in before_next:
                         key = tuple[0]
                         value = tuple[1] * weight
@@ -213,8 +177,8 @@ class Corpus(object):
 
         baseline_weight = 0.00000001
         for key in self.tree:
-            n_gram = self.tree[key]
-            value = baseline_weight * getattr(n_gram, self.sort_attribute)
+            ngram = self.tree[key]
+            value = baseline_weight * getattr(ngram, self.sort_attribute)
             if len(key.split(' ')) == 1:
                 if key not in suggestions:
                     suggestions[key] = value
