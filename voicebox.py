@@ -11,6 +11,7 @@ import random
 import re
 import voice
 import pickler
+from random import randint
 #import urllib2
 #from bs4 import BeautifulSoup
 #import unicodedata
@@ -28,6 +29,7 @@ z:              move cursor left
 c:              move cursor right
 r:              choose random word (weighted)
 v[voice #]:     change voice
+rand[#]:        randomly chooses # number of words
 add:            add voice
 set:            set corpus weights for this voice
 info:           toggle extra info
@@ -152,6 +154,18 @@ class Voicebox(object):
                     finished_sentence = self.finish_sentence(words_before, words_after, '.', '\n\n')
                     self.log = self.log + [finished_sentence] + [chosen_voice_name.upper() + ':']
                     sentence = ['START_SENTENCE']
+                elif re.compile('rand[0-9]').search(input):
+                    num_words = input[4:]
+                    counter = 0
+                    while counter < int(num_words):
+                        next_word = self.weighted_random_choice(suggestions)
+                        words_before.append(next_word)
+                        sentence = words_before + words_after
+                        self.cursor_position += 1
+                        counter += 1
+                        words_before = sentence[0:self.cursor_position]
+                        words_after = sentence[self.cursor_position:]
+                        suggestions = self.active_voice.suggest(sentence, self.cursor_position, self.num_options)
                 elif re.compile('o[0-9]').search(input): # change number of options
                     number_chosen = input[1:]
                     self.num_options = int(number_chosen)
