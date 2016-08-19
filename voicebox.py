@@ -158,14 +158,9 @@ class Voicebox(object):
                     num_words = input[4:]
                     counter = 0
                     while counter < int(num_words):
-                        # random_choice = randint(1, self.num_options)
-
                         next_word = self.weighted_random_choice(suggestions)
-                        # score_tree = choice[1][1]
                         words_before.append(next_word)
                         sentence = words_before + words_after
-                        if self.dynamic:
-                            self.update_weights(self.active_voice, score_tree, .1)
                         self.cursor_position += 1
                         counter += 1
                         words_before = sentence[0:self.cursor_position]
