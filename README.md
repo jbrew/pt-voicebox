@@ -13,13 +13,13 @@ The classes are structured as follows:
 Instructions:
 
 SETTING UP THE FOLDER
-1. Download the folder (using the green button in the top right of the repo) and save it on your desktop as pt-voicebox
-2. Create a text file for each source text you want to use. Save them inside the 'texts' folder within voicebox (pt-voicebox/texts)
+- 1. Download the folder (using the green button in the top right of the repo) and save it on your desktop as pt-voicebox
+- 2. Create a text file for each source text you want to use. Save them inside the 'texts' folder within voicebox (pt-voicebox/texts)
  
 RUNNING THE PROGRAM
-1. Open the Mac application called Terminal
-2. Enter this into the Terminal window: cd Desktop/pt-voicebox
+- 1. Open the Mac application called Terminal
+- 2. Enter this into the Terminal window: cd Desktop/pt-voicebox
          (This means “change directory to voicebox”)
-3. Enter this into the Terminal window: python voicebox.py
+- 3. Enter this into the Terminal window: python voicebox.py
          (This means “use python to run the script called voicebox.py”)
-4. Follow the onscreen instructions.
+- 4. Follow the onscreen instructions.
