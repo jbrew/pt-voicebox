@@ -1,5 +1,5 @@
 # pt-voicebox
-This is a writing interface intended to imitate the predictive text function on smartphones. It is not a bot! You have to use it.
+This is a writing interface intended to imitate the predictive text function on smartphones. It is not a bot! A user has to be involved.
 
 The classes are structured as follows:
 
