@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+import six
+from six.moves import range
 __author__ = 'jamiebrew'
 
 # information about a unique string within a corpus
@@ -39,13 +42,10 @@ class Ngram(object):
         return list(
             reversed(
                 sorted(
-                    map(
-                        lambda (string, ngram): (
-                            string,
-                            getattr(ngram, sort_attribute)
-                        ),
-                        dictionary.iteritems()
-                    ),
+                    [(
+                            string_ngram[0],
+                            getattr(string_ngram[1], sort_attribute)
+                        ) for string_ngram in six.iteritems(dictionary)],
                     key=lambda tuple: tuple[1]
                 )
             )

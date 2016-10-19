@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 __author__ = 'jamiebrew'
 
 import os
@@ -82,10 +85,10 @@ class transcript_parser(object):
         tpath = 'texts/transcripts/%s' % tname
         for cname in os.listdir(tpath):
             cpath = '%s/%s' % (tpath, cname)
-            size_by_name[cname] = len(file(cpath).read().split())
-        sorted_chars = list(reversed(sorted(size_by_name.items(), key=operator.itemgetter(1))))
+            size_by_name[cname] = len(open(cpath).read().split())
+        sorted_chars = list(reversed(sorted(list(size_by_name.items()), key=operator.itemgetter(1))))
         for pair in sorted_chars[0:number]:
-            print pair
+            print(pair)
         return sorted_chars
 
 

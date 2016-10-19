@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+import six
+from six.moves import range
 __author__ = 'jamiebrew'
 
 from ngram import Ngram
@@ -35,7 +38,7 @@ class Corpus(object):
                 word_count[word] = word_count.get(word, 0) + 1
 
         white_list = set()
-        for word, count in word_count.iteritems():
+        for word, count in six.iteritems(word_count):
             if count >= self.min_word_count:
                 white_list.add(word)
 
@@ -85,15 +88,12 @@ class Corpus(object):
     def get_sentences(self):
         sentences = self.text.split('.\n' or '. ' or '?' or '!')
 
-        return map(
-            lambda sentence: (
+        return [(
                 sentence.strip('\n') \
                         .translate(string.maketrans('', ''), string.punctuation.replace('\'', '')) \
                         .lower()
                         .split()
-            ),
-            sentences
-        )
+            ) for sentence in sentences]
 
     # Adds an ngram to a given tree
     def add_ngram(self, ngram, tree=None):
@@ -106,23 +106,23 @@ class Corpus(object):
 
     # Finds and stores normalized frequencies
     def calculate_frequencies(self):
-        for _, ngram in self.tree.iteritems():
+        for _, ngram in six.iteritems(self.tree):
             ngram.frequency = ngram.count / float(self.wordcount)
             for ngrams_before in ngram.before:
-                for _, ngram_before in ngrams_before.iteritems():
+                for _, ngram_before in six.iteritems(ngrams_before):
                     ngram_before.frequency = ngram_before.count / float(ngram.count)
             for ngrams_after in ngram.after:
-                for _, ngram_after in ngrams_after.iteritems():
+                for _, ngram_after in six.iteritems(ngrams_after):
                     ngram_after.frequency = ngram_after.count / float(ngram.count)
 
     # Computes and stores the significance scores
     def calculate_sig_scores(self):
-        for _, ngram in self.tree.iteritems():
+        for _, ngram in six.iteritems(self.tree):
             for ngrams_before in ngram.before:
-                for before_key, ngram_before in ngrams_before.iteritems():
+                for before_key, ngram_before in six.iteritems(ngrams_before):
                     ngram_before.sig_score = (ngram_before.frequency / self.tree[before_key].frequency) * math.log(ngram.frequency + 1, 10)
             for ngrams_after in ngram.after:
-                for after_key, ngram_after in ngrams_after.iteritems():
+                for after_key, ngram_after in six.iteritems(ngrams_after):
                     ngram_after.sig_score = (ngram_after.frequency / self.tree[after_key].frequency) * math.log(ngram.frequency + 1, 10)
 
     # given a sentence and an insertion position in that sentence, yields a list of words likely to occur at that position
@@ -185,7 +185,7 @@ class Corpus(object):
                 else:
                     suggestions[key] += value
 
-        suggestion_list = list(reversed(sorted(suggestions.items(), key=operator.itemgetter(1))))[0:num_words]
+        suggestion_list = list(reversed(sorted(list(suggestions.items()), key=operator.itemgetter(1))))[0:num_words]
 
         return suggestion_list
 
