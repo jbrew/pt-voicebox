@@ -100,12 +100,12 @@ class Voicebox(object):
             #    print words_before[-1]+ ": " + self.to_english(words_before[-1]).encode('utf-8').strip()
             #    self.spanish_to_english = False
 
-            input = raw_input('What now?\n')
-            
+            user_input = raw_input('What now?\n')
+
             try:
-                input = int(input)
-                if input in range(1, len(suggestions)+1):
-                    choice = self.take_suggestion(suggestions, input)
+                user_input = int(user_input)
+                if user_input in range(1, len(suggestions)+1):
+                    choice = self.take_suggestion(suggestions, user_input)
                     next_word = choice[0]
                     score_tree = choice[1][1]
                     words_before.append(next_word)
@@ -113,7 +113,7 @@ class Voicebox(object):
                     if self.dynamic:
                         self.update_weights(self.active_voice, score_tree, .1)
                     self.cursor_position += 1
-                elif input == 0:
+                elif user_input == 0:
                     self.log = self.log + sentence
                     self.log.remove('START_SENTENCE')
                     print " ".join(self.log)
@@ -122,31 +122,31 @@ class Voicebox(object):
                     print "That's out of range!"
             except:
                 pass
-                if input == 'z':
+                if user_input == 'z':
                     self.cursor_position -= 1
-                elif input == 'c':
+                elif user_input == 'c':
                     self.cursor_position +=1
-                elif input == 'x':
+                elif user_input == 'x':
                     self.delete_word(words_before)
                     self.cursor_position -= 1
                     sentence = words_before+words_after
-                elif input == 'r':
+                elif user_input == 'r':
                     next_word = self.weighted_random_choice(suggestions)
                     words_before.append(next_word)
                     sentence = words_before + words_after
                     self.cursor_position += 1
-                #elif input == 't':
+                #elif user_input == 't':
                 #    self.spanish_to_english = True
-                elif input == 'info':
+                elif user_input == 'info':
                     self.toggle_info()
-                elif input == 'dynamic':
+                elif user_input == 'dynamic':
                     self.toggle_dynamic()
-                elif input == 'add':
+                elif user_input == 'add':
                     self.add_voice()
-                elif input == 'set':
+                elif user_input == 'set':
                     self.set_weights(self.active_voice)
-                elif re.compile('v[0-9]').search(input): # switch to different corpus
-                    voice_num = input[1:]
+                elif re.compile('v[0-9]').search(user_input): # switch to different corpus
+                    voice_num = user_input[1:]
                     voice_keys = sorted(self.voices.keys())
                     chosen_voice_name = voice_keys[int(voice_num) - 1]
                     self.active_voice = self.voices[chosen_voice_name]
@@ -154,8 +154,8 @@ class Voicebox(object):
                     finished_sentence = self.finish_sentence(words_before, words_after, '.', '\n\n')
                     self.log = self.log + [finished_sentence] + [chosen_voice_name.upper() + ':']
                     sentence = ['START_SENTENCE']
-                elif re.compile('rand[0-9]').search(input):
-                    num_words = input[4:]
+                elif re.compile('rand[0-9]').search(user_input):
+                    num_words = user_input[4:]
                     counter = 0
                     while counter < int(num_words):
                         next_word = self.weighted_random_choice(suggestions)
@@ -166,21 +166,21 @@ class Voicebox(object):
                         words_before = sentence[0:self.cursor_position]
                         words_after = sentence[self.cursor_position:]
                         suggestions = self.active_voice.suggest(sentence, self.cursor_position, self.num_options)
-                elif re.compile('o[0-9]').search(input): # change number of options
-                    number_chosen = input[1:]
+                elif re.compile('o[0-9]').search(user_input): # change number of options
+                    number_chosen = user_input[1:]
                     self.num_options = int(number_chosen)
                     print 'Now writing with %s options!' % number_chosen
-                elif input in ['.', '?','!']:
-                    finished_sentence = self.finish_sentence(words_before, words_after, input)
+                elif user_input in ['.', '?','!']:
+                    finished_sentence = self.finish_sentence(words_before, words_after, user_input)
                     self.log = self.log + [finished_sentence]
                     sentence = ['START_SENTENCE']
                     self.cursor_position = 1
-                elif input == 'save':
+                elif user_input == 'save':
                     self.save_session()
-                elif input == 'load':
+                elif user_input == 'load':
                     self.load_session()
-                elif isinstance(input, str) and len(input.strip()) > 0:
-                    words_before.append(input)
+                elif isinstance(user_input, str) and len(user_input.strip()) > 0:
+                    words_before.append(user_input)
                     sentence = words_before + words_after
                     self.cursor_position += 1
                 else:
@@ -367,8 +367,8 @@ class Voicebox(object):
             suggestion_string += '\n'
         print suggestion_string
 
-    def take_suggestion(self, suggestions, input):
-        return suggestions[int(input) - 1]
+    def take_suggestion(self, suggestions, user_input):
+        return suggestions[int(user_input) - 1]
 
     """
     # These functions are for looking up the definitions of unfamiliar words.
