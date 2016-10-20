@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import unittest
 import test_data
 from corpus import Corpus
@@ -5,7 +6,7 @@ from corpus import Corpus
 class CorpusTests(unittest.TestCase):
 
   def _get_suggested_word_list(self, suggested_tuples):
-    return set(map(lambda (word, sort_attribute): word, suggested_tuples))
+    return set([word_sort_attribute[0] for word_sort_attribute in suggested_tuples])
 
   def _get_suggested_sort_attribute(self, suggested_tuples, word):
     index = [t[0] for t in suggested_tuples].index(word)

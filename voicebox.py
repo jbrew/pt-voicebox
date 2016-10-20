@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
+from six.moves import input
 __author__ = 'jamiebrew'
 
 import os
@@ -51,7 +55,7 @@ class Voicebox(object):
         #self.spanish_to_english = False
         self.num_options = 20
 
-        load_prev = raw_input('Load previous session? y/n\n')
+        load_prev = input('Load previous session? y/n\n')
         if load_prev != 'n':
             loaded_voicebox = self.load_session()               # unpickles a previously-saved object
             self.cursor = loaded_voicebox.cursor
@@ -92,20 +96,20 @@ class Voicebox(object):
             words_before = sentence[0:self.cursor_position]
             words_after = sentence[self.cursor_position:]
             suggestions = self.active_voice.suggest(sentence, self.cursor_position, self.num_options)
-            print self.header()
-            print textwrap.fill(" ".join(self.log + words_before[1:] + [self.cursor] + words_after),80)
+            print(self.header())
+            print(textwrap.fill(" ".join(self.log + words_before[1:] + [self.cursor] + words_after),80))
             self.display_suggestions(suggestions)
 
             #if self.spanish_to_english:
             #    print words_before[-1]+ ": " + self.to_english(words_before[-1]).encode('utf-8').strip()
             #    self.spanish_to_english = False
 
-            input = raw_input('What now?\n')
-            
+            user_input = input('What now?\n')
+
             try:
-                input = int(input)
-                if input in range(1, len(suggestions)+1):
-                    choice = self.take_suggestion(suggestions, input)
+                user_input = int(user_input)
+                if user_input in range(1, len(suggestions)+1):
+                    choice = self.take_suggestion(suggestions, user_input)
                     next_word = choice[0]
                     score_tree = choice[1][1]
                     words_before.append(next_word)
@@ -113,49 +117,49 @@ class Voicebox(object):
                     if self.dynamic:
                         self.update_weights(self.active_voice, score_tree, .1)
                     self.cursor_position += 1
-                elif input == 0:
+                elif user_input == 0:
                     self.log = self.log + sentence
                     self.log.remove('START_SENTENCE')
-                    print " ".join(self.log)
+                    print(" ".join(self.log))
                     return
                 else:
-                    print "That's out of range!"
+                    print("That's out of range!")
             except:
                 pass
-                if input == 'z':
+                if user_input == 'z':
                     self.cursor_position -= 1
-                elif input == 'c':
+                elif user_input == 'c':
                     self.cursor_position +=1
-                elif input == 'x':
+                elif user_input == 'x':
                     self.delete_word(words_before)
                     self.cursor_position -= 1
                     sentence = words_before+words_after
-                elif input == 'r':
+                elif user_input == 'r':
                     next_word = self.weighted_random_choice(suggestions)
                     words_before.append(next_word)
                     sentence = words_before + words_after
                     self.cursor_position += 1
-                #elif input == 't':
+                #elif user_input == 't':
                 #    self.spanish_to_english = True
-                elif input == 'info':
+                elif user_input == 'info':
                     self.toggle_info()
-                elif input == 'dynamic':
+                elif user_input == 'dynamic':
                     self.toggle_dynamic()
-                elif input == 'add':
+                elif user_input == 'add':
                     self.add_voice()
-                elif input == 'set':
+                elif user_input == 'set':
                     self.set_weights(self.active_voice)
-                elif re.compile('v[0-9]').search(input): # switch to different corpus
-                    voice_num = input[1:]
+                elif re.compile('v[0-9]').search(user_input): # switch to different corpus
+                    voice_num = user_input[1:]
                     voice_keys = sorted(self.voices.keys())
                     chosen_voice_name = voice_keys[int(voice_num) - 1]
                     self.active_voice = self.voices[chosen_voice_name]
-                    print '%s chosen!' % chosen_voice_name
+                    print('%s chosen!' % chosen_voice_name)
                     finished_sentence = self.finish_sentence(words_before, words_after, '.', '\n\n')
                     self.log = self.log + [finished_sentence] + [chosen_voice_name.upper() + ':']
                     sentence = ['START_SENTENCE']
-                elif re.compile('rand[0-9]').search(input):
-                    num_words = input[4:]
+                elif re.compile('rand[0-9]').search(user_input):
+                    num_words = user_input[4:]
                     counter = 0
                     while counter < int(num_words):
                         next_word = self.weighted_random_choice(suggestions)
@@ -166,60 +170,60 @@ class Voicebox(object):
                         words_before = sentence[0:self.cursor_position]
                         words_after = sentence[self.cursor_position:]
                         suggestions = self.active_voice.suggest(sentence, self.cursor_position, self.num_options)
-                elif re.compile('o[0-9]').search(input): # change number of options
-                    number_chosen = input[1:]
+                elif re.compile('o[0-9]').search(user_input): # change number of options
+                    number_chosen = user_input[1:]
                     self.num_options = int(number_chosen)
-                    print 'Now writing with %s options!' % number_chosen
-                elif input in ['.', '?','!']:
-                    finished_sentence = self.finish_sentence(words_before, words_after, input)
+                    print('Now writing with %s options!' % number_chosen)
+                elif user_input in ['.', '?','!']:
+                    finished_sentence = self.finish_sentence(words_before, words_after, user_input)
                     self.log = self.log + [finished_sentence]
                     sentence = ['START_SENTENCE']
                     self.cursor_position = 1
-                elif input == 'save':
+                elif user_input == 'save':
                     self.save_session()
-                elif input == 'load':
+                elif user_input == 'load':
                     self.load_session()
-                elif isinstance(input, str) and len(input.strip()) > 0:
-                    words_before.append(input)
+                elif isinstance(user_input, str) and len(user_input.strip()) > 0:
+                    words_before.append(user_input)
                     sentence = words_before + words_after
                     self.cursor_position += 1
                 else:
-                    print "Invalid input."
+                    print("Invalid input.")
 
     # toggles whether weights to sources in the current voice adjust automatically
     def toggle_dynamic(self):
         self.dynamic = not self.dynamic
         if self.dynamic:
-            print "Dynamic weight adjustment on!"
+            print("Dynamic weight adjustment on!")
         else:
-            print "Dynamic weight adjustment off!"
+            print("Dynamic weight adjustment off!")
 
     # toggles whether to show information about scores (and their decomposition by source)
     def toggle_info(self):
         self.more_info = not self.more_info
         if self.more_info:
-            print "More info on!"
+            print("More info on!")
         else:
-            print "More info off!"
+            print("More info off!")
 
     def set_mode(self):
         for i in range(len(self.mode_list)):
-            print "%s %s" % (i + 1, self.mode_list[i])
-        choice = raw_input('Enter the number of the session you want to load:\n')
+            print("%s %s" % (i + 1, self.mode_list[i]))
+        choice = input('Enter the number of the session you want to load:\n')
         self.mode = self.mode_list[int(choice) - 1]
 
     # saves all information about the current session
     def save_session(self):
-        path = 'saved/%s.pkl' % raw_input("Choose save name:\n")
+        path = 'saved/%s.pkl' % input("Choose save name:\n")
         pickler.save_object(self, path)
-        print "Saved voicebox to %s!" % path
+        print("Saved voicebox to %s!" % path)
 
     # prompts choice of session to load, then loads it.
     def load_session(self):
         sessions = os.listdir('saved')
         for i in range(len(sessions)):
-            print "%s %s" % (i + 1, sessions[i])
-        choice = raw_input('Enter the number of the session you want to load:\n')
+            print("%s %s" % (i + 1, sessions[i]))
+        choice = input('Enter the number of the session you want to load:\n')
         session_name = sessions[int(choice) - 1]
         path = 'saved/%s' % session_name
         return pickler.loadobject(path)
@@ -244,7 +248,7 @@ class Voicebox(object):
         for key in v.weighted_corpora:
             corpus_name = v.weighted_corpora[key][0].name
             corpus_weight_prompt = 'Enter the weight for %s:\n' % corpus_name
-            corpus_weight = float(raw_input(corpus_weight_prompt))
+            corpus_weight = float(input(corpus_weight_prompt))
             v.weighted_corpora[key][1] = corpus_weight
         v.normalize_weights()
 
@@ -266,7 +270,7 @@ class Voicebox(object):
     # deletes word before the cursor from sentence
     def delete_word(self, before):
         if len(before) == 1:
-            print "Cannot delete the start of the sentence!"
+            print("Cannot delete the start of the sentence!")
         else:
             del before[-1] # remove last element of current line
     #
@@ -286,7 +290,7 @@ class Voicebox(object):
             add_another_voice = ''
             while add_another_voice != 'n':
                 self.add_voice()
-                add_another_voice = raw_input('Add more? y/n\n')
+                add_another_voice = input('Add more? y/n\n')
 
     # asks you to choose corpora from files in 'texts', then adds a voice with those corpora
     def add_voice(self):
@@ -295,18 +299,18 @@ class Voicebox(object):
         add_another_corpus = ''
         while add_another_corpus != 'n':
             for i in range(len(texts)):
-                print "%s %s" % (i + 1, texts[i])
-            choice = raw_input('Enter the number of the corpus you want to load:\n')
+                print("%s %s" % (i + 1, texts[i]))
+            choice = input('Enter the number of the corpus you want to load:\n')
             corpus_name = texts[int(choice) - 1]
             path = 'texts/%s' % corpus_name
             f = open(path, 'r')
             text = f.read()
             corpus_weight_prompt = 'Enter the weight for %s:\n' % corpus_name
-            corpus_weight = float(raw_input(corpus_weight_prompt))
+            corpus_weight = float(input(corpus_weight_prompt))
             new_voice.add_corpus(corpus.Corpus(text, corpus_name), corpus_weight)
             texts.remove(corpus_name)
-            add_another_corpus = raw_input('Add another corpus to this voice? y/n\n')
-        voicename = raw_input('Name this voice:\n')
+            add_another_corpus = input('Add another corpus to this voice? y/n\n')
+        voicename = input('Name this voice:\n')
         new_voice.name = voicename
         new_voice.normalize_weights()
         self.voices[voicename] = new_voice
@@ -316,14 +320,14 @@ class Voicebox(object):
     def load_voices_from_transcript(self):
         transcripts = os.listdir('texts/transcripts')
         for i in range(len(transcripts)):
-            print "%s %s" % (i + 1, transcripts[i])
-        choice = raw_input('Enter the number of the transcript you want to load:\n')
+            print("%s %s" % (i + 1, transcripts[i]))
+        choice = input('Enter the number of the transcript you want to load:\n')
         transcript_name = transcripts[int(choice) - 1]
-        number = int(raw_input('Enter the number of voices to load:\n'))
+        number = int(input('Enter the number of voices to load:\n'))
         for charname, size in self.biggest_characters(transcript_name, number):
-            print charname
+            print(charname)
             path = 'texts/transcripts/%s/%s' % (transcript_name, charname)
-            source_text = file(path).read()
+            source_text = open(path).read()
             corpus_name = charname
             weighted_corpora = {}
             weighted_corpora[charname] = [corpus.Corpus(source_text, corpus_name),1]
@@ -335,17 +339,17 @@ class Voicebox(object):
         tpath = 'texts/transcripts/%s' % tname
         for cname in os.listdir(tpath):
             cpath = '%s/%s' % (tpath, cname)
-            size_by_name[cname] = len(file(cpath).read().split())
-        sorted_chars = list(reversed(sorted(size_by_name.items(), key=operator.itemgetter(1))))
+            size_by_name[cname] = len(open(cpath).read().split())
+        sorted_chars = list(reversed(sorted(list(size_by_name.items()), key=operator.itemgetter(1))))
         return sorted_chars[0:number]
 
     # offers several voice choices, returns a voice
     def choose_voice(self):
         voice_keys = sorted(self.voices.keys())
-        print "VOICES:"
+        print("VOICES:")
         for i in range(len(voice_keys)):
-            print "%s: %s" % (i + 1, voice_keys[i])
-        choice = raw_input('Choose a voice to write with...\n')
+            print("%s: %s" % (i + 1, voice_keys[i]))
+        choice = input('Choose a voice to write with...\n')
         self.active_voice = self.voices[voice_keys[int(choice) - 1]]
         return self.active_voice
 
@@ -365,10 +369,10 @@ class Voicebox(object):
                     score = format(score_tree[key], 'g')
                     suggestion_string += '\t%s: %s' % (key, score)
             suggestion_string += '\n'
-        print suggestion_string
+        print(suggestion_string)
 
-    def take_suggestion(self, suggestions, input):
-        return suggestions[int(input) - 1]
+    def take_suggestion(self, suggestions, user_input):
+        return suggestions[int(user_input) - 1]
 
     """
     # These functions are for looking up the definitions of unfamiliar words.

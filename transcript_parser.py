@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 __author__ = 'jamiebrew'
 
 import os
@@ -59,7 +62,13 @@ class transcript_parser(object):
             # consolidate all lines by a given speaker into one line
             speakers = {}
             for line in labeled_lines:
-                name = line[0].split(string.punctuation)[0].translate(string.maketrans("",""),'/')
+                if six.PY2:
+                    name = line[0].split(string.punctuation)[0].translate(string.maketrans("",""),'/')
+                elif six.PY3:
+                    name = line[0].split(string.punctuation)[0].translate(str.maketrans({'/': None})
+                else:
+                    raise NotImplementedError("expected either PY2 or PY3")
+
                 if name in speakers:
                     speakers[name]+=line[1]
                 else:
@@ -82,10 +91,10 @@ class transcript_parser(object):
         tpath = 'texts/transcripts/%s' % tname
         for cname in os.listdir(tpath):
             cpath = '%s/%s' % (tpath, cname)
-            size_by_name[cname] = len(file(cpath).read().split())
-        sorted_chars = list(reversed(sorted(size_by_name.items(), key=operator.itemgetter(1))))
+            size_by_name[cname] = len(open(cpath).read().split())
+        sorted_chars = list(reversed(sorted(list(size_by_name.items()), key=operator.itemgetter(1))))
         for pair in sorted_chars[0:number]:
-            print pair
+            print(pair)
         return sorted_chars
 
 

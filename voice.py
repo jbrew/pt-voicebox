@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 __author__ = 'jamiebrew'
 
 import operator
@@ -24,7 +25,7 @@ class Voice(object):
                     else:
                         suggestions[word][0] += score * weight
                         suggestions[word][1][corp.name] = score
-        suggestions = list(reversed(sorted(suggestions.items(), key=operator.itemgetter(1))))[0:num_words]
+        suggestions = list(reversed(sorted(list(suggestions.items()), key=operator.itemgetter(1))))[0:num_words]
         return suggestions[0:num_words]
 
     # adds a corpus to this voice

@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 __author__ = 'jamiebrew'
 
-import cPickle as pickle
+import six.moves.cPickle as pickle
 
 # saves an object to a file
 def save_object(obj, path):
