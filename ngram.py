@@ -3,8 +3,9 @@ import six
 from six.moves import range
 __author__ = 'jamiebrew'
 
-# information about a unique string within a corpus
+
 class Ngram(object):
+    """information about a unique string within a corpus"""
 
     def __init__(self, string, after_distance=0, before_distance=0):
         self.string = string
@@ -27,12 +28,12 @@ class Ngram(object):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
-    # returns top n words occuring distance after this ngram
     def get_after(self, distance=1, n=20, sort_attribute="count"):
+        """returns top n words occuring distance after this ngram"""
         return self._get_ngram_and_attribute(distance, n, sort_attribute, True)
 
-    # returns top n words occuring distance before this ngram
     def get_before(self, distance=1, n=20, sort_attribute="count"):
+        """returns top n words occuring distance before this ngram"""
         return self._get_ngram_and_attribute(distance, n, sort_attribute, False)
 
     def _get_ngram_and_attribute(self, distance, n, sort_attribute, is_after):

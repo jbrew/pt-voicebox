@@ -6,6 +6,7 @@ __author__ = 'jamiebrew'
 import os
 import string
 import operator
+import six
 
 """
 Takes a transcript formatted as follows, with newlines separating lines, and without paragraph breaks in the middle of
@@ -39,38 +40,39 @@ Likewise, WILLY (to himself) will be fed into a different file from WILLY.
 """
 
 
-# parser for game of thrones transcripts
 class transcript_parser(object):
+    """parser for game of thrones transcripts"""
 
     def parseTranscript(self, tname):
             path = 'raw_transcripts/%s' % tname
-            f = open(path,"r")
-            # splits file at ":" (so last word of each block is a speaker); pairs each line with last word before preceding colon
+            f = open(path, "r")
+            # splits file at ":" (so last word of each block is a speaker)
+            # pairs each line with last word before preceding colon
             lines = f.read().lower().split('\n')
             for line in lines:
                 line = line.strip('\n')
             labeled_lines = []
 
             # associate each line with a speaker
-            for i in range(1,len(lines)):
+            for i in range(1, len(lines)):
                 if ':' in lines[i]:
                     pair = lines[i].split(':', 1)   # splits only at first instance of ':'
                     labeled_lines.append(pair)
                 else:
-                    labeled_lines.append(['stage directions',lines[i]])
+                    labeled_lines.append(['stage directions', lines[i]])
 
             # consolidate all lines by a given speaker into one line
             speakers = {}
             for line in labeled_lines:
                 if six.PY2:
-                    name = line[0].split(string.punctuation)[0].translate(string.maketrans("",""),'/')
+                    name = line[0].split(string.punctuation)[0].translate(string.maketrans("", ""), '/')
                 elif six.PY3:
-                    name = line[0].split(string.punctuation)[0].translate(str.maketrans({'/': None})
+                    name = line[0].split(string.punctuation)[0].translate(str.maketrans({'/': None}))
                 else:
                     raise NotImplementedError("expected either PY2 or PY3")
 
                 if name in speakers:
-                    speakers[name]+=line[1]
+                    speakers[name] += line[1]
                 else:
                     speakers[name] = line[1]
 
@@ -79,12 +81,11 @@ class transcript_parser(object):
                 dirpath = 'texts/transcripts/%s' % tname
                 if not os.path.isdir(dirpath):
                     os.mkdir(dirpath)
-                path = 'texts/transcripts/%s/%s' % (tname,name)
+                path = 'texts/transcripts/%s/%s' % (tname, name)
 
-                outfile = open(path,'w')
+                outfile = open(path, 'w')
                 toWrite = speakers[name]
                 outfile.write(toWrite)
-
 
     def biggest_characters(self, tname, number):
         size_by_name = {}

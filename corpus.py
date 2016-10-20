@@ -7,16 +7,16 @@ from ngram import Ngram
 import string
 import math
 import operator
-import re
 
-"""
-a corpus represents information about a text as a tree indexed by string
-	* each entry in the tree is an ngram object
-	* the key for a multi-word ngram is the space-separated words in the ngram
-"""
+
 class Corpus(object):
-
-    def __init__(self, text, name='', max_ngram_size=2, sort_attribute='frequency', foresight=0, hindsight=2, min_word_count=1):
+    """
+    a corpus represents information about a text as a tree indexed by string
+        * each entry in the tree is an ngram object
+        * the key for a multi-word ngram is the space-separated words in the ngram
+    """
+    def __init__(self, text, name='', max_ngram_size=2, sort_attribute='frequency', foresight=0,
+                 hindsight=2, min_word_count=1):
         self.text = text
         self.name = name
         self.max_ngram_size = max_ngram_size
@@ -29,9 +29,9 @@ class Corpus(object):
         self.tree = {}
         self.make_tree()
 
-    # The list of words in a given list of sentences that have a count greater than
-    # or equal to the minimum word count
     def get_white_list(self, sentences):
+        """The list of words in a given list of sentences that have a count greater than
+        or equal to the minimum word count"""
         word_count = {}
         for sentence in sentences:
             for word in sentence:
@@ -44,8 +44,8 @@ class Corpus(object):
 
         return white_list
 
-    # constructs the tree of ngrams' likelihood of following other ngrams
     def make_tree(self):
+        """constructs the tree of ngrams' likelihood of following other ngrams"""
         sentences = self.get_sentences()
         white_list = self.get_white_list(sentences)
 
@@ -57,7 +57,8 @@ class Corpus(object):
                     end = start + ngram_size
                     if end <= len(sentence):
                         words_to_add = sentence[start:end]
-                        if set(words_to_add) < white_list and len(words_to_add) > 0: # checks that all of the words in the ngram pass criterion
+                        # checks that all of the words in the ngram pass criterion
+                        if set(words_to_add) < white_list and len(words_to_add) > 0:
                             new_ngram = " ".join(words_to_add)
                             self.add_ngram(new_ngram)
                             if ngram_size == 1:
@@ -84,31 +85,31 @@ class Corpus(object):
         self.calculate_frequencies()
         self.calculate_sig_scores()
 
-    # Split text into sentences, lowercase and clean punctuation
     def get_sentences(self):
+        """Split text into sentences, lowercase and clean punctuation"""
         sentences = self.text.split('.\n' or '. ' or '?' or '!')
 
         if six.PY2:
             return [(
-                    sentence.strip('\n') \
-                            .translate(string.maketrans('', ''), string.punctuation.replace('\'', '')) \
+                    sentence.strip('\n')
+                            .translate(string.maketrans('', ''), string.punctuation.replace('\'', ''))
                             .lower()
                             .split()
-                ) for sentence in sentences]
+                    ) for sentence in sentences]
 
         elif six.PY3:
             return [(
-                    sentence.strip('\n') \
-                            .translate(str.maketrans({key: None for key in string.punctuation if key != '\''})) \
+                    sentence.strip('\n')
+                            .translate(str.maketrans({key: None for key in string.punctuation if key != '\''}))
                             .lower()
                             .split()
-                ) for sentence in sentences]
+                    ) for sentence in sentences]
 
         else:
             raise NotImplementedError("expected either PY2 or PY3")
 
-    # Adds an ngram to a given tree
     def add_ngram(self, ngram, tree=None):
+        """Adds an ngram to a given tree"""
         tree = self.tree if tree is None else tree
 
         if ngram in tree:
@@ -116,8 +117,8 @@ class Corpus(object):
         else:
             tree[ngram] = Ngram(ngram, self.hindsight, self.foresight)
 
-    # Finds and stores normalized frequencies
     def calculate_frequencies(self):
+        """Finds and stores normalized frequencies"""
         for _, ngram in six.iteritems(self.tree):
             ngram.frequency = ngram.count / float(self.wordcount)
             for ngrams_before in ngram.before:
@@ -127,19 +128,23 @@ class Corpus(object):
                 for _, ngram_after in six.iteritems(ngrams_after):
                     ngram_after.frequency = ngram_after.count / float(ngram.count)
 
-    # Computes and stores the significance scores
     def calculate_sig_scores(self):
+        """Computes and stores the significance scores"""
         for _, ngram in six.iteritems(self.tree):
             for ngrams_before in ngram.before:
                 for before_key, ngram_before in six.iteritems(ngrams_before):
-                    ngram_before.sig_score = (ngram_before.frequency / self.tree[before_key].frequency) * math.log(ngram.frequency + 1, 10)
+                    ngram_before.sig_score = (ngram_before.frequency
+                                              / self.tree[before_key].frequency
+                                              ) * math.log(ngram.frequency + 1, 10)
             for ngrams_after in ngram.after:
                 for after_key, ngram_after in six.iteritems(ngrams_after):
-                    ngram_after.sig_score = (ngram_after.frequency / self.tree[after_key].frequency) * math.log(ngram.frequency + 1, 10)
+                    ngram_after.sig_score = (ngram_after.frequency
+                                             / self.tree[after_key].frequency
+                                             ) * math.log(ngram.frequency + 1, 10)
 
-    # given a sentence and an insertion position in that sentence, yields a list of words likely to occur at that position
-    # based on adjacent words and baseline frequency
     def suggest(self, sentence, cursor_position, num_words):
+        """given a sentence and an insertion position in that sentence, yields a list of words
+        likely to occur at that position based on adjacent words and baseline frequency"""
 
         # these are the parts of the active sentence that come before and after the cursor
         before_cursor = sentence[0:cursor_position]
@@ -155,7 +160,7 @@ class Corpus(object):
                     start_of_ngram = end_of_ngram - (ngram_size-1)
                     previous_ngram = " ".join(before_cursor[start_of_ngram:end_of_ngram+1])
                     after_previous = self.get_after(previous_ngram, reach, num_words)
-                    #print "after %s: %s" % (previous_ngram, str(after_previous))
+                    # print "after %s: %s" % (previous_ngram, str(after_previous))
                     # crude function for privileging larger n-grams and closer contexts
                     weight = (10**ngram_size)/(10**reach)
                     for tuple in after_previous:
@@ -174,7 +179,7 @@ class Corpus(object):
                     end_of_ngram = start_of_ngram + (ngram_size - 1)
                     next_ngram = " ".join(after_cursor[start_of_ngram:end_of_ngram+1])
                     before_next = self.get_before(next_ngram, reach, num_words)
-                    #print "before %s: %s" % (next_ngram.string, str(before_next))
+                    # print "before %s: %s" % (next_ngram.string, str(before_next))
 
                     # crude function for privileging larger n-grams and closer contexts
                     weight = (10**ngram_size)/(10**reach)
@@ -201,13 +206,13 @@ class Corpus(object):
 
         return suggestion_list
 
-    def get_before(self, key, distance=1, num_words = 20):
+    def get_before(self, key, distance=1, num_words=20):
         if key in self.tree:
             return self.tree[key].get_before(distance, num_words, self.sort_attribute)
         else:
             return []
 
-    def get_after(self, key, distance=1, num_words = 20):
+    def get_after(self, key, distance=1, num_words=20):
         if key in self.tree:
             return self.tree[key].get_after(distance, num_words, self.sort_attribute)
         else:
@@ -224,5 +229,3 @@ class Corpus(object):
 
     def __len__(self):
         return len(self.tree)
-
-
