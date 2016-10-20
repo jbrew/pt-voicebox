@@ -88,12 +88,24 @@ class Corpus(object):
     def get_sentences(self):
         sentences = self.text.split('.\n' or '. ' or '?' or '!')
 
-        return [(
-                sentence.strip('\n') \
-                        .translate(string.maketrans('', ''), string.punctuation.replace('\'', '')) \
-                        .lower()
-                        .split()
-            ) for sentence in sentences]
+        if six.PY2:
+            return [(
+                    sentence.strip('\n') \
+                            .translate(string.maketrans('', ''), string.punctuation.replace('\'', '')) \
+                            .lower()
+                            .split()
+                ) for sentence in sentences]
+
+        elif six.PY3:
+            return [(
+                    sentence.strip('\n') \
+                            .translate(str.maketrans({key: None for key in string.punctuation if key != '\''})) \
+                            .lower()
+                            .split()
+                ) for sentence in sentences]
+
+        else:
+            raise NotImplementedError("expected either PY2 or PY3")
 
     # Adds an ngram to a given tree
     def add_ngram(self, ngram, tree=None):

@@ -62,7 +62,13 @@ class transcript_parser(object):
             # consolidate all lines by a given speaker into one line
             speakers = {}
             for line in labeled_lines:
-                name = line[0].split(string.punctuation)[0].translate(string.maketrans("",""),'/')
+                if six.PY2:
+                    name = line[0].split(string.punctuation)[0].translate(string.maketrans("",""),'/')
+                elif six.PY3:
+                    name = line[0].split(string.punctuation)[0].translate(str.maketrans({'/': None})
+                else:
+                    raise NotImplementedError("expected either PY2 or PY3")
+
                 if name in speakers:
                     speakers[name]+=line[1]
                 else:
