@@ -3,10 +3,11 @@ __author__ = 'jamiebrew'
 
 import operator
 
-# keeps a dictionary of sources with associated weights
-class Voice(object):
 
-    def __init__(self, weighted_corpora, name = 'no_name'):
+class Voice(object):
+    """keeps a dictionary of sources with associated weights"""
+
+    def __init__(self, weighted_corpora, name='no_name'):
         self.name = name
         self.weighted_corpora = weighted_corpora
 
