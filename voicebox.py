@@ -349,7 +349,7 @@ class Voicebox(object):
         print("VOICES:")
         for i in range(len(voice_keys)):
             print("%s: %s" % (i + 1, voice_keys[i]))
-        choice = input('Choose a voice to write with...\n')
+        choice = input('Choose a voice by entering a number...\n')
         self.active_voice = self.voices[voice_keys[int(choice) - 1]]
         return self.active_voice
 
