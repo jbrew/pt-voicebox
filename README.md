@@ -9,6 +9,7 @@ The classes are structured as follows:
 
 - a voicebox contains a list of voices, and has a user writing loop that allows for switching between them on the fly
 
+<<<<<<< Updated upstream
 # overview of algorithm
 
 The approach to generating word lists is Markov-esque but is not strictly a Markov process, which would need to be stochastic. Here, the user has the final decision.
@@ -37,3 +38,10 @@ RUNNING THE PROGRAM
 - 3. Enter this into the Terminal window: python voicebox.py
          (This means “use python to run the script called voicebox.py”)
 - 4. Follow the onscreen instructions.
+=======
+Corpus
+
+- a corpus knows about all of the unique n-grams that occur in a source text, up to a specified n-gram size
+- e.g., if the maximum n-gram size is 3, the corpus will have an entry for each unique 1-gram, 2-gram, and 3-gram that occurs in the source
+- 
+>>>>>>> Stashed changes
