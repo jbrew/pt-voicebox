@@ -348,17 +348,9 @@ class Voicebox(object):
         voice_keys = sorted(self.voices.keys())
         print("VOICES:")
         for i in range(len(voice_keys)):
-<<<<<<< Updated upstream
             print("%s: %s" % (i + 1, voice_keys[i]))
-<<<<<<< Updated upstream
         choice = input('Choose a voice by entering a number...\n')
-=======
-        choice = input('Choose a voice to write with...\n')
-=======
             print "%s: %s" % (i + 1, voice_keys[i])
-        choice = raw_input('Choose a voice by entering a number...\n')
->>>>>>> Stashed changes
->>>>>>> Stashed changes
         self.active_voice = self.voices[voice_keys[int(choice) - 1]]
         return self.active_voice
 
