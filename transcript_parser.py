@@ -100,4 +100,4 @@ class transcript_parser(object):
 
 
 p = transcript_parser()
-p.parseTranscript('phelps_interview')
+p.parseTranscript('madmen')

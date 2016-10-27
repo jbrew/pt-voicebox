@@ -44,13 +44,6 @@ class Corpus(object):
 
         return white_list
 
-<<<<<<< Updated upstream
-=======
-	def make_tree2(self):
-		self.text.split('.\n' or '. ' or '?' or '!').join('[$]')
-
-    # constructs the tree of ngrams' likelihood of following other ngrams
->>>>>>> Stashed changes
     def make_tree(self):
         """constructs the tree of ngrams' likelihood of following other ngrams"""
         sentences = self.get_sentences()
