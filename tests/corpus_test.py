@@ -1,7 +1,10 @@
 from __future__ import absolute_import
+
 import unittest
-import test_data
-from corpus import Corpus
+
+from voicebox.corpus import Corpus
+
+from tests import test_data
 
 
 class CorpusTests(unittest.TestCase):

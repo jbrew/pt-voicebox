@@ -1,11 +1,14 @@
 from __future__ import absolute_import
+
 import unittest
-from ngram import Ngram
+
+from voicebox.ngram import Ngram
 
 
 class NgramTests(unittest.TestCase):
 
-    def mock_ngram(self, string, count, frequency, sig_score):
+    @staticmethod
+    def mock_ngram(string, count, frequency, sig_score):
         ngram = Ngram(string)
         ngram.count = count
         ngram.frequency = frequency
@@ -59,6 +62,7 @@ class NgramTests(unittest.TestCase):
             self.ngram.get_before(sort_attribute="sig_score"),
             [('baz', 9), ('bar', 3)]
         )
+
 
 if __name__ == '__main__':
     unittest.main()

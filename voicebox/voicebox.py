@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
@@ -8,13 +7,13 @@ from six.moves import input
 __author__ = 'jamiebrew'
 
 import os
-import corpus
 import operator
 import textwrap
 import random
 import re
-import voice
-import pickler
+from .corpus import Corpus
+from .voice import Voice
+from .pickler import loadobject, save_object
 # import urllib2
 # from bs4 import BeautifulSoup
 # import unicodedata
@@ -215,7 +214,7 @@ class Voicebox(object):
     # saves all information about the current session
     def save_session(self):
         path = 'saved/%s.pkl' % input("Choose save name:\n")
-        pickler.save_object(self, path)
+        save_object(self, path)
         print("Saved voicebox to %s!" % path)
 
     # prompts choice of session to load, then loads it.
@@ -226,7 +225,7 @@ class Voicebox(object):
         choice = input('Enter the number of the session you want to load:\n')
         session_name = sessions[int(choice) - 1]
         path = 'saved/%s' % session_name
-        return pickler.loadobject(path)
+        return loadobject(path)
 
     # given a chosen word and a tree of scores assigned to it by different sources, updates the weights of those sources
     # according to whether they exceeded or fell short of their expected contribution to the suggestion
@@ -294,7 +293,7 @@ class Voicebox(object):
 
     # asks you to choose corpora from files in 'texts', then adds a voice with those corpora
     def add_voice(self):
-        new_voice = voice.Voice({})     # creates new voice with no name and empty tree of corpora
+        new_voice = Voice({})     # creates new voice with no name and empty tree of corpora
         texts = os.listdir('texts')
         add_another_corpus = ''
         while add_another_corpus != 'n':
@@ -307,7 +306,7 @@ class Voicebox(object):
             text = f.read()
             corpus_weight_prompt = 'Enter the weight for %s:\n' % corpus_name
             corpus_weight = float(input(corpus_weight_prompt))
-            new_voice.add_corpus(corpus.Corpus(text, corpus_name), corpus_weight)
+            new_voice.add_corpus(Corpus(text, corpus_name), corpus_weight)
             texts.remove(corpus_name)
             add_another_corpus = input('Add another corpus to this voice? y/n\n')
         voicename = input('Name this voice:\n')
@@ -330,8 +329,8 @@ class Voicebox(object):
             source_text = open(path).read()
             corpus_name = charname
             weighted_corpora = {}
-            weighted_corpora[charname] = [corpus.Corpus(source_text, corpus_name), 1]
-            self.voices[charname] = voice.Voice(weighted_corpora, charname)
+            weighted_corpora[charname] = [Corpus(source_text, corpus_name), 1]
+            self.voices[charname] = Voice(weighted_corpora, charname)
 
     # retrieves a list of the top 20 largest character text files in a transcript folder
     def biggest_characters(self, tname, number):
@@ -399,10 +398,3 @@ class Voicebox(object):
         soup = BeautifulSoup(page.decode('utf-8','ignore'), "html.parser")
         foo = soup.findAll(class_="dictionary-neodict-translation-translation")
         """
-
-
-def main():
-    vb = Voicebox()
-    vb.write()
-
-main()

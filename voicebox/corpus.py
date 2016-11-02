@@ -3,7 +3,7 @@ import six
 from six.moves import range
 __author__ = 'jamiebrew'
 
-from ngram import Ngram
+from .ngram import Ngram
 import string
 import math
 import operator
