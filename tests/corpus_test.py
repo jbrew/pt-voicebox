@@ -82,5 +82,12 @@ class CorpusTests(unittest.TestCase):
             self._get_suggested_sort_attribute(suggested_tuples,  'penny')
         )
 
+    def test_get_sentences__with_unicode_string(self):
+        corpus = Corpus(text=test_data.text_unicode)
+
+        sentences = corpus.get_sentences()
+        self.assertEqual(sentences, [[u'hey', u'look'], [u'i\'m', u'unicode']])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='voicebox',
-      version='0.2',
+      version='0.0.1',
       description='Predictive text writing tool',
       url='',
       author='Jamie Brew',

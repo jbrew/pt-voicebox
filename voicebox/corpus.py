@@ -1,12 +1,13 @@
 from __future__ import absolute_import
 import six
 from six.moves import range
-__author__ = 'jamiebrew'
-
 from .ngram import Ngram
 import string
 import math
 import operator
+import re
+
+__author__ = 'jamiebrew'
 
 
 class Corpus(object):
@@ -87,26 +88,16 @@ class Corpus(object):
 
     def get_sentences(self):
         """Split text into sentences, lowercase and clean punctuation"""
-        sentences = self.text.split('.\n' or '. ' or '?' or '!')
+        remove_punctuation_map = dict((ord(char), None) for char in string.punctuation.replace('\'', ''))
+        sentences = re.split(r'\n|\. |!|\?', self.text)
 
-        if six.PY2:
-            return [(
-                    sentence.strip('\n')
-                            .translate(string.maketrans('', ''), string.punctuation.replace('\'', ''))
+        return [(
+                    sentence.decode('utf-8')
+                            .strip('\n')
+                            .translate(remove_punctuation_map)
                             .lower()
                             .split()
-                    ) for sentence in sentences]
-
-        elif six.PY3:
-            return [(
-                    sentence.strip('\n')
-                            .translate(str.maketrans({key: None for key in string.punctuation if key != '\''}))
-                            .lower()
-                            .split()
-                    ) for sentence in sentences]
-
-        else:
-            raise NotImplementedError("expected either PY2 or PY3")
+                ) for sentence in sentences if sentence]
 
     def add_ngram(self, ngram, tree=None):
         """Adds an ngram to a given tree"""
