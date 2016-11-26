@@ -7,8 +7,9 @@ This is a writing interface intended to imitate the predictive text function on 
 2. Enter `cd ~/Desktop` or wherever you would like to download the project (`cd` means "Change Directory" and `~/Desktop` is a shortcut to your desktop) 
 3. Enter `git clone https://github.com/jbrew/pt-voicebox.git` to download the project
 4. Enter `cd pt-voicebox` to go into the project directory
-5. Enter `pip install -r requirements.txt` to download the project dependencies
-6. Enter `bin/voicebox` and follow the onscreen instructions
+5. Enter `sudo easy_install pip` (this will prompt you for your password)
+6. Enter `pip install --user -r requirements.txt` to download the project dependencies
+7. Enter `bin/voicebox` and follow the onscreen instructions
 
 #### Adding Your Own Source Texts
 1. Enter `cd ~/Desktop/pt-voicebox` or wherever you downloaded the project
